@@ -178,6 +178,11 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
 
 void inicializaPCAs(void)
 {
+    //ESP Rotina de inicialização de PCAs especifica para M1-56t
+    inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
+    inicializaPCAs_Individualmente(0x21);
+    
+    /*Rotina de inicialização de PCAs original
 	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
 		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //inicializa base
 	{ 
@@ -199,6 +204,7 @@ void inicializaPCAs(void)
 	{
 		inicializaPCAs_Individualmente(ENDERECO_PCA_3_MM1200_C);
 	}
+    */
 	
 }
 

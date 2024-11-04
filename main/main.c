@@ -24,6 +24,7 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "declaracoes.h"
 #include "definicoes.h"
 #include "registrosPCA9506.h"
+#include <stdio.h>
 
 //#pragma interrupt_handler lowVoltageDetected
 
@@ -35,7 +36,7 @@ unsigned char AuxVarToShowIfEncoderAandBAreConnected;
 unsigned char AuxVarToShowVersionOfHardwareBoard;
 
 
-unsigned char g_has_received_some_led_usb_command;
+//unsigned char g_has_received_some_led_usb_command;
 
 extern unsigned char bufferLeituraPCA1[7+5+5+5];
 extern unsigned char bufferLeituraPCA1_seminterrupcao[7+5+5+5];
@@ -50,23 +51,18 @@ extern unsigned char StatusOfEncoderBoardLeds[2];
 
 void app_main(void)
 {
+	//Inicializa o i2c, instala os drivers necessários
 	i2c_master_init();
 
+	//Variável responsável por auxiliar as iterações nos laços
 	unsigned char cntTmp;
 
 	inicializaArrayIndicaTecla();
 		
-	//inicializaPlacaTecladoUSB();
-	
-
-
-	
-	
-	//M8C_EnableGInt;	//Habilita as interrupcoes globais
-	
 	/***********************************************************************************
 	 Confere se qual tipo de teclado está em operação
 	************************************************************************************/
+	//ESP Primeira sequencia de logs no monitor serial, ESP_OK quando encontra o PCA e ESP_FAIL quando não encontra
 	AuxVarToShowVersionOfHardwareBoard = 0x00;
 	
 	if (CheckPcaDevice(ENDERECO_PCA_1))
@@ -92,28 +88,12 @@ void app_main(void)
 	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_C))
 	{
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED;	
-	}	
-	
+	}
 
-	/***********************************************************************************
-	 Confere se encoders estão conectados
-	************************************************************************************/
-	/*
-	AuxVarToShowIfEncoderAandBAreConnected = 0x00;
-	if (CheckPcaDevice(ENDERECO_PCA_ENCODER_A))
-	{
-		AuxVarToShowIfEncoderAandBAreConnected |= PCA_ENCODER_A_CONNECTED;
-	}
-	
-	if (CheckPcaDevice(ENDERECO_PCA_ENCODER_B))
-	{
-		AuxVarToShowIfEncoderAandBAreConnected |= PCA_ENCODER_B_CONNECTED;	
-	}
-	*/
 	/***********************************************************************************
 	inicializaPCAs
 	************************************************************************************/
-	
+	//ESP Rotina de inicialização dos PCAs alterada para o funcionamento especifico no esp
 	inicializaPCAs();
 	
 	//Inicializa vertorzao de leitura de teclas
@@ -136,6 +116,7 @@ void app_main(void)
 	/***********************************************************************************
 	 Thread responsável por processar rotina de testes
 	************************************************************************************/
+	/*ESP TO-DO implementar a rotina de testes
 	if (Key33And34And35PressedToEnterInTestMode())
 	{
 		if (Key33And34And35PressedToEnterInTestMode())
@@ -150,60 +131,27 @@ void app_main(void)
 			}
 		}
 	}
-		
+	*/
 		
 
-	//inicializaUSB();
-
-	
 	//Loop infinito da aplicação
 	while (1)
 	{	
-		
-		
-		/***********************************************************************************
-		 Thread responsável por processar comandos recebidos da USB
-		************************************************************************************/
-		//ThreadProcessaComandosUSB();
-		
-		
-		/***********************************************************************************
-		 Thread USB . Gerencia envio e recepção
-		************************************************************************************/
-		//ThreadUSB();
-		
-		
-		/******************************************************************
-		 Processamento do Timer de 5ms - fora da interrupção
-		*******************************************************************/ 
-		if (timerTick == 0)
-		{
-			ThreadReadKey_SemInt();
-			
-			timerTick = VALOR_TIMEOUT_READKEY_OUTINT;	
-			
-		}
-		
-		//GerenciaEncoders ();
-		
-	
-
-		/******************************************************************
-		 Feed the WTD
-		*******************************************************************/ 
-		brutalWatchdog = 0; //Feed the dog.	
+		printf("chegou no loop da aplicação");
 	}
 }
 
 /****************************************************************************************
  Rotina responsável por tratar a interrupção por queda de tensão
 ****************************************************************************************/
+/*
 void lowVoltageDetected(void )
 {
 	RunKeysJustFirstLine();
 	RunKeysJustFirstLine();
 	inicializaPCAs();
 }
+*/
 
 /***************************************************************************************
  Todas inicializações de interrupções e periféricos são feitas nesta rotina
