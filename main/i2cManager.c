@@ -5,6 +5,7 @@
 #include "esp_log.h"
 #include "esp_err.h"
 #include "driver/i2c.h"
+#include <stdio.h>
 
 
 /**************************************************************************
@@ -80,6 +81,7 @@ antes de escrever.
 void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
     uint8_t cntTmp;
     i2c_cmd_handle_t cmd;
+    esp_err_t status;
 
     // Primeiro passo na configuração
     cmd = i2c_cmd_link_create();
@@ -92,8 +94,15 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         i2c_master_write_byte(cmd, 0xFF, true);
     }
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    if (status != ESP_OK) {
+        ESP_LOGE("I2C", "Erro ao inicializar o PCA, erro: %s", esp_err_to_name(status));
+    } else {
+        ESP_LOGI("I2C", "PCA inicializado corretamente, 5 bancos configurados como entrada");
+    }
     i2c_cmd_link_delete(cmd);
+
+    //ESP abaixo funções originais diretamente traduzidas para esp, necessária adaptação de trechos para o funcionamento correto
 
     // Configuração das entradas para HIGH (somente se for possível nos registros read-only)
     /*
@@ -105,11 +114,19 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         i2c_master_write_byte(cmd, 0xFF, true);
     }
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    if (status != ESP_OK){
+        ESP_LOGE("I2C", "Erro ao configurar as entradas do PCA para HIGH erro: %s", esp_err_to_name(status));
+    }
+    else {
+        ESP_LOGI("I2C", "Entradas configuradas como HIGH");
+    }
     i2c_cmd_link_delete(cmd);
     */
+    
 
     // Configura todas as saídas para manter LEDs apagados inicialmente
+    
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
@@ -118,10 +135,18 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         i2c_master_write_byte(cmd, 0x00, true);  // LEDs apagados
     }
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    if (status != ESP_OK){
+        ESP_LOGE("I2C", "Erro ao configurar as saídas para manter os leds apagados inicialmente, erro: %s", esp_err_to_name(status));
+    }
+    else {
+        ESP_LOGI("I2C", "Sucesso ao configurar as saídas para manter os leds apagados inicialmente");
+    }
     i2c_cmd_link_delete(cmd);
+    
 
     // Configura a máscara de interrupção
+    /*
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
@@ -132,8 +157,10 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
     i2c_master_stop(cmd);
     i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
+    */
 
     // Leitura para resetar o pino de interrupção (INT) para HIGH
+    /*
     if (i2cAddress == HARDWARE_VERSION_56TECLASSEMEXPANSAO) {
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
@@ -141,8 +168,10 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
     }
+    */
 
     // Apaga todos os LEDs
+    /*
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
@@ -153,17 +182,20 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
     i2c_master_stop(cmd);
     i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
+    */
 
     // Leitura para atualizar variáveis
     if (i2cAddress == HARDWARE_VERSION_56TECLASSEMEXPANSAO) {
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
-        leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
+       //leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
     } else { 
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
-        leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
+        //leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
     }
+    
 
     // Mantém polaridade original
+    
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
@@ -172,15 +204,25 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         i2c_master_write_byte(cmd, 0x00, true);  // Polaridade normal
     }
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    if (status != ESP_OK){
+        ESP_LOGE("I2C", "Erro ao manter a polaridade original do PCA, erro: %s", esp_err_to_name(status));
+    }
+    else {
+        ESP_LOGI("I2C", "Sucesso ao manter a polaridade original");
+    }
     i2c_cmd_link_delete(cmd);
+    
 }
 
 void inicializaPCAs(void)
 {
     //ESP Rotina de inicialização de PCAs especifica para M1-56t
     inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
-    inicializaPCAs_Individualmente(0x21);
+    printf("inicialização do primeiro PCA concluída, continuando a rotina \n");
+
+    //ESP por estar utilizando um PCA de menos pinos, sem registradores inicializar é necessário
+    //inicializaPCAs_Individualmente(0x21);
     
     /*Rotina de inicialização de PCAs original
 	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
@@ -343,6 +385,9 @@ void leRegistroUnico(unsigned char endereco, unsigned char reg, unsigned char * 
     if (status != ESP_OK) {
         ESP_LOGE("I2C", "Erro ao executar a Leitura de Registro Unico no PCA9506");
     }
+    else {
+        ESP_LOGI("I2C", "Sucesso ao ler registro único no PCA9506");
+    }
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);
 }
@@ -365,6 +410,9 @@ void escreveRegistro(unsigned char endereco, unsigned char reg, unsigned char va
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
         ESP_LOGE("I2C", "Erro ao executar a Escrita de Registro no PCA9506");
+    }
+    else {
+        ESP_LOGI("I2C", "Sucesso ao escrever no PCA9506");
     }
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);

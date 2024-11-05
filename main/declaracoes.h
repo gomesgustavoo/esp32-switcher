@@ -41,6 +41,7 @@ void lowVoltageDetected(void);
 void inicializaPlacaTecladoUSB(void);
 */
 void app_main(void);
+void lerTeclasTeste(unsigned char *);
 /*
 //usbcomm.c
 void inicializaUSB(void);

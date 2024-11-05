@@ -23,6 +23,7 @@ Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
 #include "declaracoes.h"
 #include "definicoes.h"
 #include "registrosPCA9506.h"
+#include <stdio.h>
 
 unsigned char comando, dado1, dado2;
 unsigned char AuxVarToBlinkBanks[7+5+5+5];
@@ -795,19 +796,19 @@ void RunKeyLedsOneTime(void)
 
 
 }
-
+/*
 unsigned char Key33And34And35PressedToEnterInTestMode(void)
 {
 	
 	unsigned char bufferLeituraPCAParaTesteTecla33_34_35Pressed;
-/*		
+
 	unsigned char ArrayIndicaTecla[5][8] = {
 	{TECLA_17, TECLA_18, TECLA_19, TECLA_20, TECLA_21, TECLA_22, TECLA_23, TECLA_24},
 	{TECLA_25, TECLA_26, TECLA_27, TECLA_28, TECLA_29, TECLA_30, TECLA_31, TECLA_32},
 	{TECLA_49, TECLA_50, TECLA_51, TECLA_52, TECLA_53, TECLA_54, TECLA_55, TECLA_56},
 	{TECLA_33, TECLA_34, TECLA_35, TECLA_36, TECLA_37, TECLA_38, TECLA_39, TECLA_40},
 	{TECLA_41, TECLA_42, TECLA_43, TECLA_44, TECLA_45, TECLA_46, TECLA_47, TECLA_48}
-};	11100000 => 0x07 */
+};	11100000 => 0x07 
 	
 	//escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[4], 0xFF); //Configura como entrada
 
@@ -824,6 +825,7 @@ unsigned char Key33And34And35PressedToEnterInTestMode(void)
 		
 }
 
+*/
 
 void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo)
 {
@@ -920,60 +922,61 @@ void RunTestMode(void)
 	unsigned char cntBank;
 	unsigned char TempPort0;
 	unsigned char Key47And48PressedWhenLow;
-	unsigned char bufferToCheckEncoder[3];
-	
+	//unsigned char bufferToCheckEncoder[3];
+	/*ESP removido, implementar caso seja necessário salvar o estado dos leds
 	// indica entrada no modo de teste
 	RunKeyLedsOneTime();
 	brutalWatchdog = 0; //Feed the dog.	
 	RunKeyLedsOneTime();
 	brutalWatchdog = 0; //Feed the dog.	
+	*/
 	
 	TempPort0 = 0xFF;
 	
-	Key47And48PressedWhenLow = 1;
+	//Key47And48PressedWhenLow = 1;
 	
 
 	
-	while (1)
-	{
-		
-		if (timerTick == 0)
+		while (1)
 		{
-			escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[0], 0xFF); //Configura como entrada
-			
-			//efetua leitura das portas
-			leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[0]),&bufferLeituraPCAParaMenuDoTeste);
-			
-			//restabelece porta 0
-			escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[0], TempPort0);
-			
-			if ((bufferLeituraPCAParaMenuDoTeste|(~0x01)) == (~0x01)) //tecla 17: acende todos
-			{
-				TempPort0 = 0x00;
-				AcendeTodasAsTeclas(); 
+				escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[0], 0xFF); //Configura como entrada
 				
-			}
-			else if ((bufferLeituraPCAParaMenuDoTeste|(~0x02)) == (~0x02)) //tecla 18: apaga todas
-			{
-				TempPort0 = 0xFF;
-				ApagaTodasAsTeclas();
+				//efetua leitura das portas
+				leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[0]),&bufferLeituraPCAParaMenuDoTeste);
+				printf("%u", bufferLeituraPCAParaMenuDoTeste);
 				
-			}
-			else if ((bufferLeituraPCAParaMenuDoTeste|(~0x04)) == (~0x04)) //tecla 19: acende IMPAR
-			{
-				TempPort0 = 0xAA;
-				AcendeAsTeclasImpares();
+				//restabelece porta 0
+				escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[0], TempPort0);
 				
-			}
-			else if ((bufferLeituraPCAParaMenuDoTeste|(~0x08)) == (~0x08)) //tecla 20: acende PAR
-			{
-				TempPort0 = 0x55;
-				AcendeAsTeclasPares();
-				
-			}
+				if ((bufferLeituraPCAParaMenuDoTeste|(~0x01)) == (~0x01)) //tecla 17: acende todos
+				{
+					TempPort0 = 0x00;
+					AcendeTodasAsTeclas(); 
+					
+				}
+				else if ((bufferLeituraPCAParaMenuDoTeste|(~0x02)) == (~0x02)) //tecla 18: apaga todas
+				{
+					TempPort0 = 0xFF;
+					ApagaTodasAsTeclas();
+					
+				}
+				else if ((bufferLeituraPCAParaMenuDoTeste|(~0x04)) == (~0x04)) //tecla 19: acende IMPAR
+				{
+					TempPort0 = 0xAA;
+					AcendeAsTeclasImpares();
+					
+				}
+				else if ((bufferLeituraPCAParaMenuDoTeste|(~0x08)) == (~0x08)) //tecla 20: acende PAR
+				{
+					TempPort0 = 0x55;
+					AcendeAsTeclasPares();
+					
+				}
+			/*
 			else if ((bufferLeituraPCAParaMenuDoTeste|(~0x10)) == (~0x10)) //tecla 21 teste de teclas
 			{
 				ApagaTodasAsTeclas();
+			*/
 				
 				/*/apaga teclas 1 a 16
 				escreveRegistro(ENDERECO_PCA8575D_MM1300, 0xFF, 0xFF);
@@ -996,9 +999,10 @@ void RunTestMode(void)
 					escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[cntBank], 0xFF); //Configura como entrada
 					
 				}*/
-				TempPort0 = 0xFF;
+				//TempPort0 = 0xFF;
 
 				//espera timer estourar para garantir acendimento das teclas visível
+				/*
 				while (timerTick != 0);
 				timerTick = VALOR_TIMEOUT_READKEY_OUTINT;
 
@@ -1097,6 +1101,7 @@ void RunTestMode(void)
 								
 								
 							}
+				*/
 							/*
 							else 
 							{
@@ -1141,6 +1146,7 @@ void RunTestMode(void)
 							}
 							*/
 						}
+						/*
 						//etapa 2 para teclados expansores
 						if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
 							(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
@@ -1181,13 +1187,13 @@ void RunTestMode(void)
 						timerTick = VALOR_TIMEOUT_READKEY_OUTINT;	
 			
 					}
-					/*
+					
 					else {
 						
 						GerenciaEncoders();
 					
 					}
-					*/
+						
 						
 					
 					
@@ -1243,6 +1249,7 @@ void RunTestMode(void)
 			
 		}
 		
+					*/
 		
 		/******************************************************************
 		 Feed the WTD
@@ -1251,8 +1258,6 @@ void RunTestMode(void)
 
 		
 	}
-	
-}
 
 void ThreadReadKey_SemInt(void)
 {

@@ -25,10 +25,14 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "definicoes.h"
 #include "registrosPCA9506.h"
 #include <stdio.h>
+#include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_err.h"
 
 //#pragma interrupt_handler lowVoltageDetected
 
-
+unsigned char TesteCode = 143;
 unsigned char timerTick;
 unsigned int brutalWatchdog;
 extern unsigned char AuxVarToBlinkBanks[7+5+5+5];
@@ -116,7 +120,7 @@ void app_main(void)
 	/***********************************************************************************
 	 Thread responsável por processar rotina de testes
 	************************************************************************************/
-	/*ESP TO-DO implementar a rotina de testes
+	/*
 	if (Key33And34And35PressedToEnterInTestMode())
 	{
 		if (Key33And34And35PressedToEnterInTestMode())
@@ -132,12 +136,25 @@ void app_main(void)
 		}
 	}
 	*/
-		
+	//ESP rotina de testes
+	leRegistro(0x22, (input_port_register_bank[0] | 0x80),  &bufferLeituraPCA1[0]);
+	//Entra na condicional caso pressione e mantenha pressionado 3 teclas, equivalentes ao uchar 143
+	if (bufferLeituraPCA1[2] == TesteCode) {
+		if (bufferLeituraPCA1[2] == TesteCode){
+			if (bufferLeituraPCA1[2] == TesteCode){
+			printf("MODO DE TESTE ATIVADO");
+			RunTestMode();
+			}
+		}
+	}
+
 
 	//Loop infinito da aplicação
 	while (1)
 	{	
-		printf("chegou no loop da aplicação");
+		printf("chegou no loop da aplicação\n");
+		
+		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
 
