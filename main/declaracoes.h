@@ -33,6 +33,7 @@ void GerenciaEncoders (void);
 void inicializaArrayIndicaTecla(void);
 void ApagaTodasAsTeclas(void);
 void AcendeTodasAsTeclas(void);
+void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo);
 
 
 /*

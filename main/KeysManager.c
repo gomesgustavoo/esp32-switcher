@@ -829,6 +829,25 @@ unsigned char Key33And34And35PressedToEnterInTestMode(void)
 
 void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo)
 {
+	//ESP Rotina responsável por enviar um valor para todos os expansores PCAs da placa
+	//Versão protótipo enviando diretamente para o PCA9506 e PCA8575 mas deve ser expansivel para mais PCAs
+
+	//Configura o PCA9506 como output
+	escreve5RegistrosBurst(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[0],0xFF,
+																					 			   0xFF,
+																								   0xFF,
+																					 			   0xFF, 
+																								   0xFF);
+	//Envia o valor presente em ValorFixo para os PCAs
+	escreve5RegistrosBurst(ENDERECO_PCA_2_MM1300, output_port_register_banks[0],
+																							ValorFixo,
+																							ValorFixo,
+																							ValorFixo,
+																							ValorFixo,
+																							ValorFixo);
+
+
+	/*
 	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
 		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //apenas placa base
 	{
@@ -870,6 +889,7 @@ void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo)
 		escreve5RegistrosBurst(ENDERECO_PCA_3_MM1200_C, io_configuration_register_banks[0], ValorFixo, ValorFixo,ValorFixo,ValorFixo,ValorFixo);
  
 	}
+	*/
 }
 
 void AcendeTodasAsTeclas(void)

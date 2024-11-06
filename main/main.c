@@ -153,7 +153,7 @@ void app_main(void)
 	while (1)
 	{	
 		printf("chegou no loop da aplicação\n");
-		
+		AplicaValorFixoEmTodosOsPCAS(0xFF);
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
