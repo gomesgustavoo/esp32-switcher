@@ -385,10 +385,11 @@ void leRegistroUnico(unsigned char endereco, unsigned char reg, unsigned char * 
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
         ESP_LOGE("I2C", "Erro ao executar a Leitura de Registro Unico no PCA9506");
-    }
+    }/*ESP Debug
     else {
         ESP_LOGI("I2C", "Sucesso ao ler registro único no PCA9506");
     }
+    */
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);
 }
@@ -411,10 +412,11 @@ void escreveRegistro(unsigned char endereco, unsigned char reg, unsigned char va
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
         ESP_LOGE("I2C", "Erro ao executar a Escrita de Registro no PCA9506");
-    }
+    }/*ESP Debug
     else {
         ESP_LOGI("I2C", "Sucesso ao escrever no PCA9506, reg: %u, valor: %u", reg, valor);
     }
+    */
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);
 }
@@ -487,13 +489,13 @@ unsigned char CheckPcaDevice(unsigned char endereco)
 
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
-        printf("ERRO: %s\n", esp_err_to_name(status));
+        printf("PCA no endereço %u não encontrado, ERRO: %s\n",endereco, esp_err_to_name(status));
         return 1;
     	}
     else {
-        printf("PCA respondeu a comunicação, status: %s\n", esp_err_to_name(status));
         return 0;
     	}
+        
     i2c_cmd_link_delete(cmd);
 }
 

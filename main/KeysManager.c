@@ -371,7 +371,7 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 			
 		}
 			
-		
+		/*ESP Ativar para uma futura mesa com encoder
 		//gerencia leds do encoder
 		if	((AuxVarToShowIfEncoderAandBAreConnected&PCA_ENCODER_A_CONNECTED) == PCA_ENCODER_A_CONNECTED)
 		{
@@ -416,10 +416,11 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 			
 			escrevePCA8575(ENDERECO_PCA_ENCODER_B, StatusOfEncoderBoardLeds[1]);
 		}
+		*/
 
 
 	}
-	else 	if (Cmd_On_or_Off_or_Blink == CMD_KEYLED_OFF)
+	else if (Cmd_On_or_Off_or_Blink == CMD_KEYLED_OFF)
 	{
 		if (KeyIndex == ALL_LEDS)
 		{
@@ -455,7 +456,7 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 			
 		}
 		
-		
+		/*
 		//gerencia leds do encoder
 		if	((AuxVarToShowIfEncoderAandBAreConnected&PCA_ENCODER_A_CONNECTED) == PCA_ENCODER_A_CONNECTED)
 		{
@@ -500,6 +501,7 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 			
 			escrevePCA8575(ENDERECO_PCA_ENCODER_B, StatusOfEncoderBoardLeds[1]);
 		}
+		*/
 	
 	}
 	
@@ -709,9 +711,9 @@ void RunKeysJustFirstLine(void )
 void RunKeyLedsOneTime(void)
 {
 	//static unsigned char estadoAnteriorGPI;
-	unsigned char cntTmp;
+	//unsigned char cntTmp;
 	unsigned char cntBank;
-	unsigned char barramento;
+	//unsigned char barramento;
 	unsigned char temp_io_register[7+5+5+5];
 	unsigned int i;
 	
@@ -1262,6 +1264,10 @@ void RunTestMode(void)
 
 void ThreadReadKey_SemInt(void)
 {
+	//ESP para a primeira versão funcional da Mesa vou utilizar os endereços específicos dos PCAs 9506 e 8575
+	ThreadReadKey_SemInt_Individualmente(0x22);
+
+	/*ESP trecho original que permite a escalabilidade para outras placas maiores, implementar em uma versão completa da mesa
 	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
 		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //inicializa base
 	{ 
@@ -1289,6 +1295,7 @@ void ThreadReadKey_SemInt(void)
 		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_C);
 		//Timer8_Start();		
 	}
+	*/
 	
 }
 
@@ -1400,8 +1407,8 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 	{
 		//for (cntBank = 5; cntBank < 7; cntBank++) //feito separado pois a logica do pca8575 é diferente
 		//evita 1 leitura de i2c com o for estranho abaixo
-		escreveRegistro(ENDERECO_PCA8575D_MM1300, 0xFF, 0xFF); //configura como saida alta para efetuar leitura
-		
+		//escreveRegistro(ENDERECO_PCA8575D_MM1300, 0xFF, 0xFF); //configura como saida alta para efetuar leitura
+		escreve_2bytes_PCA8575(ENDERECO_PCA8575D_MM1300, 0xFF);
 		//efetua leitura das portas
 		lePCA8575RegistroUnico(ENDERECO_PCA8575D_MM1300, &bufferLeituraPCA1_imediatamenteAposPolling[5]); //reg 6 pega automatico
 		
@@ -1486,11 +1493,14 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
 					//SCQ_InsertNewCommand(CMD_KEY_NOTIFY,  ArrayIndicaTecla[cntBank][cntTmp], PRESSED);
+					printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
+					ManageKeyLeds(CMD_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
 				}
 				else 
 				{
 					//SCQ_InsertNewCommand(CMD_KEY_NOTIFY,  ArrayIndicaTecla[cntBank][cntTmp], RELEASED);
+					printf("TECLA SOLTA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] |= varBitSelect;
 				}
 			}

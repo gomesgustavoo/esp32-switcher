@@ -156,16 +156,31 @@ void app_main(void)
 	while (1)
 	{	
 		printf("chegou no loop da aplicação\n");
-		AcendeTodasAsTeclas();
-		vTaskDelay(pdMS_TO_TICKS(1000));
-		ApagaTodasAsTeclas();
-		vTaskDelay(pdMS_TO_TICKS(1000));
-		AcendeAsTeclasPares();
-		vTaskDelay(pdMS_TO_TICKS(1000));
-		ApagaTodasAsTeclas();
-		AcendeAsTeclasImpares();
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		//Inicializa o StatusofKeyboardLeds
+		inicializaStatusOfKeyBoardLeds();
+		//Faz a leitura
+		ThreadReadKey_SemInt();
+		printf("retornou ao loop da aplicação\n");
+		
+		vTaskDelay(pdMS_TO_TICKS(200));
 	}
+}
+
+//ESP Rotina responsável por inicializar o Status of keyboard leds que vai ser utilizado no ThreadReadKey
+void inicializaStatusOfKeyBoardLeds(void)
+{
+	unsigned char PortIndex;
+	//inicializa StatusOfKeyBoardLeds com todas as teclas apagadas
+	for (PortIndex = 0; PortIndex < (7+5+5+5); PortIndex++)
+	{
+		StatusOfKeyBoardLeds[PortIndex][0] = 0xFF;
+		StatusOfKeyBoardLeds[PortIndex][1] = 0xFF;
+		AuxVarToBlinkBanks[PortIndex] = 0xFF;
+	}
+	StatusOfEncoderBoardLeds[0] = 0xFF;
+	StatusOfEncoderBoardLeds[1] = 0xFF;
+
+	//RunKeyLedsOneTime();
 }
 
 /****************************************************************************************
