@@ -99,6 +99,7 @@ void app_main(void)
 	************************************************************************************/
 	//ESP Rotina de inicialização dos PCAs alterada para o funcionamento especifico no esp
 	inicializaPCAs();
+	vTaskDelay(pdMS_TO_TICKS(500));
 	
 	//Inicializa vertorzao de leitura de teclas
 	for (cntTmp = 0; cntTmp < 5; cntTmp++)
@@ -140,7 +141,9 @@ void app_main(void)
 	leRegistro(0x22, (input_port_register_bank[0] | 0x80),  &bufferLeituraPCA1[0]);
 	//Entra na condicional caso pressione e mantenha pressionado 3 teclas, equivalentes ao uchar 143
 	if (bufferLeituraPCA1[2] == TesteCode) {
+		vTaskDelay(pdMS_TO_TICKS(100));
 		if (bufferLeituraPCA1[2] == TesteCode){
+			vTaskDelay(pdMS_TO_TICKS(100));
 			if (bufferLeituraPCA1[2] == TesteCode){
 			printf("MODO DE TESTE ATIVADO");
 			RunTestMode();
@@ -153,8 +156,15 @@ void app_main(void)
 	while (1)
 	{	
 		printf("chegou no loop da aplicação\n");
-		AplicaValorFixoEmTodosOsPCAS(0xFF);
-		vTaskDelay(pdMS_TO_TICKS(500));
+		AcendeTodasAsTeclas();
+		vTaskDelay(pdMS_TO_TICKS(1000));
+		ApagaTodasAsTeclas();
+		vTaskDelay(pdMS_TO_TICKS(1000));
+		AcendeAsTeclasPares();
+		vTaskDelay(pdMS_TO_TICKS(1000));
+		ApagaTodasAsTeclas();
+		AcendeAsTeclasImpares();
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 

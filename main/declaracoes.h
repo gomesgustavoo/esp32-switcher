@@ -33,6 +33,8 @@ void GerenciaEncoders (void);
 void inicializaArrayIndicaTecla(void);
 void ApagaTodasAsTeclas(void);
 void AcendeTodasAsTeclas(void);
+void AcendeAsTeclasPares(void);
+void AcendeAsTeclasImpares(void);
 void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo);
 
 
@@ -92,5 +94,6 @@ void escreve5RegistrosBurst(unsigned char endereco, unsigned char reg, 	unsigned
 																		
 unsigned char CheckPcaDevice(unsigned char endereco);
 void escrevePCA8575(unsigned char endereco, unsigned char valor);
+void escreve_2bytes_PCA8575(unsigned char endereco, unsigned char valor);
 //ESP inicializa i2c
 void i2c_master_init();

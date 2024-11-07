@@ -5,6 +5,7 @@
 #include "esp_log.h"
 #include "esp_err.h"
 #include "driver/i2c.h"
+#include <stdint.h>
 #include <stdio.h>
 
 
@@ -412,7 +413,7 @@ void escreveRegistro(unsigned char endereco, unsigned char reg, unsigned char va
         ESP_LOGE("I2C", "Erro ao executar a Escrita de Registro no PCA9506");
     }
     else {
-        ESP_LOGI("I2C", "Sucesso ao escrever no PCA9506");
+        ESP_LOGI("I2C", "Sucesso ao escrever no PCA9506, reg: %u, valor: %u", reg, valor);
     }
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);
@@ -429,6 +430,40 @@ void escrevePCA8575(unsigned char endereco, unsigned char valor)
     //Define uma operação de escrita e escreve
     i2c_master_write_byte(cmd, (endereco << 1) | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(cmd, valor, true);
+
+    //Finaliza a comunicação i2c
+    i2c_master_stop(cmd);
+    //Executa o buffer de comandos, é possivel implementar casos de erro mais explicativos
+    status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
+    if (status != ESP_OK) {
+        ESP_LOGE("I2C", "Erro ao executar a Escrita de Registro no PCA9506");
+    }
+    //Libera o buffer de comandos
+    i2c_cmd_link_delete(cmd);
+}
+//ESP
+void escreve_2bytes_PCA8575(unsigned char endereco, unsigned char valor)
+{
+    esp_err_t status;
+    //Cria o buffer de comandos para a comunicação i2c
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    
+    uint16_t data;
+
+    data = (valor << 8 );
+    data = data | valor;
+    //printf("debug, data: %d, valor: %u\n", data, valor);
+
+    uint8_t low_byte = data & 0xFF;        // Byte menos significativo (P0 a P7)
+    uint8_t high_byte = (data >> 8) & 0xFF; // Byte mais significativo (P8 a P15)
+    //printf("debug, low_byte = %d e high_byte = %d", low_byte, high_byte);
+
+    //Inicio da comunicação i2c
+    i2c_master_start(cmd);
+    //Define uma operação de escrita e escreve
+    i2c_master_write_byte(cmd, (endereco << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, low_byte, true);  // Escreve os pinos P0 a P7
+    i2c_master_write_byte(cmd, high_byte, true);  // Escreve os pinos P8 a P15
 
     //Finaliza a comunicação i2c
     i2c_master_stop(cmd);
@@ -500,6 +535,15 @@ void escreve5RegistrosBurst(unsigned char endereco, unsigned char reg, unsigned 
     if (status != ESP_OK) {
         printf("ERRO: %s\n", esp_err_to_name(status));
     }
+    /*
+    else{
+        printf("Sucesso ao escrever os 5 valores: %u, %u, %u, %u, %u\n",valor0,
+                                                                             valor1,
+                                                                             valor2,
+                                                                             valor3,
+                                                                             valor4);                                                                            
+    }
+    */
     //Libera o buffer
     i2c_cmd_link_delete(cmd);
 }
