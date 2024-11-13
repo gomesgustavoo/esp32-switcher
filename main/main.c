@@ -99,7 +99,7 @@ void app_main(void)
 	************************************************************************************/
 	//ESP Rotina de inicialização dos PCAs alterada para o funcionamento especifico no esp
 	inicializaPCAs();
-	vTaskDelay(pdMS_TO_TICKS(500));
+	vTaskDelay(pdMS_TO_TICKS(200));
 	
 	//Inicializa vertorzao de leitura de teclas
 	for (cntTmp = 0; cntTmp < 5; cntTmp++)
@@ -155,14 +155,14 @@ void app_main(void)
 	//Loop infinito da aplicação
 	while (1)
 	{	
-		printf("chegou no loop da aplicação\n");
+		//printf("chegou no loop da aplicação\n");
 		//Inicializa o StatusofKeyboardLeds
 		inicializaStatusOfKeyBoardLeds();
 		//Faz a leitura
 		ThreadReadKey_SemInt();
-		printf("retornou ao loop da aplicação\n");
-		
-		vTaskDelay(pdMS_TO_TICKS(200));
+		//printf("retornou ao loop da aplicação\n");
+
+		vTaskDelay(pdMS_TO_TICKS(120));
 	}
 }
 
@@ -180,7 +180,7 @@ void inicializaStatusOfKeyBoardLeds(void)
 	StatusOfEncoderBoardLeds[0] = 0xFF;
 	StatusOfEncoderBoardLeds[1] = 0xFF;
 
-	//RunKeyLedsOneTime();
+	RunKeyLedsOneTime();
 }
 
 /****************************************************************************************

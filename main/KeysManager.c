@@ -146,7 +146,244 @@ void inicializaArrayIndicaTecla(void)
 
 	
 }
+unsigned char GetPortIndex_OfKey(unsigned char KeyIndex)
+{
+	switch (KeyIndex)
+	{
+		case TECLA_17:
+		case TECLA_18: 
+		case TECLA_19:
+		case TECLA_20:
+		case TECLA_21:
+		case TECLA_22:
+		case TECLA_23:
+		case TECLA_24:
+			return 0;
+			break;
+			
+	 	case TECLA_25 :  
+		case TECLA_26 :  
+		case TECLA_27 :  
+		case TECLA_28 :  
+		case TECLA_29 :  
+		case TECLA_30 :  
+		case TECLA_31 :  
+		case TECLA_32 :			
+			return 1;
+			break;
+	 
+		case TECLA_49 :  
+		case TECLA_50 :  
+		case TECLA_51 :  
+		case TECLA_52 :  
+		case TECLA_53 :  
+		case TECLA_54 : 
+		case TECLA_55 :  
+		case TECLA_56 :			
+			return 2;
+			break;
+		
+		case TECLA_33 :  
+		case TECLA_34 :  
+		case TECLA_35 : 
+		case TECLA_36 : 
+		case TECLA_37 :  
+		case TECLA_38 :  
+		case TECLA_39 :  
+		case TECLA_40 :			
+			return 3;
+			break;
+		case TECLA_41 :  
+		case TECLA_42 : 
+		case TECLA_43 : 
+		case TECLA_44 :  
+		case TECLA_45 :
+		case TECLA_46 : 
+		case TECLA_47 :  
+		case TECLA_48 :			
+			return 4;
+			break;
+		case TECLA_1 :  
+		case TECLA_2 :  
+		case TECLA_3 :
+		case TECLA_4 :  
+		case TECLA_5 :  
+		case TECLA_6 :  
+		case TECLA_7 :  
+		case TECLA_8 :		
+			return 5;
+			break;
+		case TECLA_9 :  
+		case TECLA_10 : 
+		case TECLA_11 : 
+		case TECLA_12 : 
+		case TECLA_13 :  
+		case TECLA_14 : 
+		case TECLA_15 : 
+		case TECLA_16 :		
+			return 6;
+			break;
 
+		case TECLA_57 :  
+		case TECLA_58 :  
+		case TECLA_59 :  
+		case TECLA_60 :  
+		case TECLA_61 :  
+		case TECLA_62 :  
+		case TECLA_63 :  
+		case TECLA_64 :			
+			return 7;
+			break;
+		case TECLA_65 : 
+		case TECLA_66 :  
+		case TECLA_67 :  
+		case TECLA_68 :  
+		case TECLA_69 : 
+		case TECLA_70 :  
+		case TECLA_71 :
+		case TECLA_72 :		
+			return 8;
+			break;
+		case TECLA_89 :
+		case TECLA_90 : 
+		case TECLA_91 : 
+		case TECLA_92 :  
+		case TECLA_93 :  
+		case TECLA_94 : 
+		case TECLA_95 : 
+		case TECLA_96 :		
+			return 9;
+			break;
+		case TECLA_73 : 
+		case TECLA_74 :  
+		case TECLA_75 :  
+		case TECLA_76 :  
+		case TECLA_77 :  
+		case TECLA_78 : 
+		case TECLA_79 :  
+		case TECLA_80 :			
+			return 10;
+			break;
+		case TECLA_81 :  
+		case TECLA_82 : 
+		case TECLA_83 :  
+		case TECLA_84 :  
+		case TECLA_85 :  
+		case TECLA_86 :  
+		case TECLA_87 :  
+		case TECLA_88 :		
+			return 11;
+			break;
+		case TECLA_97 : 
+		case TECLA_98 :
+		case TECLA_99 : 
+		case TECLA_100 : 
+		case TECLA_101 :  
+		case TECLA_102 :  
+		case TECLA_103 :  
+		case TECLA_104 :			
+			return 12;
+			break;
+		case TECLA_105 :  
+		case TECLA_106 :  
+		case TECLA_107 :  
+		case TECLA_108 :  
+		case TECLA_109 :  
+		case TECLA_110 :  
+		case TECLA_111 :  
+		case TECLA_112 :			
+			return 13;
+			break;
+		case TECLA_129 : 
+		case TECLA_130 : 
+		case TECLA_131 : 
+		case TECLA_132 : 
+		case TECLA_133 : 
+		case TECLA_134 : 
+		case TECLA_135 :  
+		case TECLA_136 :			
+			return 14;
+			break;
+		case TECLA_113 : 
+		case TECLA_114 :  
+		case TECLA_115 : 
+		case TECLA_116 : 
+		case TECLA_117 :  
+		case TECLA_118 : 
+		case TECLA_119 :
+		case TECLA_120 :		
+			return 15;
+			break;
+		case TECLA_121 : 
+		case TECLA_122 :  
+		case TECLA_123 :  
+		case TECLA_124 : 
+		case TECLA_125 : 
+		case TECLA_126 : 
+		case TECLA_127 : 
+		case TECLA_128 :			
+			return 16;
+			break;
+
+		case TECLA_137 :
+		case TECLA_138 : 
+		case TECLA_139 :  
+		case TECLA_140 : 
+		case TECLA_141 : 
+		case TECLA_142 :  
+		case TECLA_143 :  
+		case TECLA_144 :		
+			return 17;
+			break;
+		case TECLA_145 :
+		case TECLA_146 :  
+		case TECLA_147 :  
+		case TECLA_148 :  
+		case TECLA_149 : 
+		case TECLA_150 : 
+		case TECLA_151 :
+		case TECLA_152 :		
+			return 18;
+			break;
+		case TECLA_169 : 
+		case TECLA_170 : 
+		case TECLA_171 :  
+		case TECLA_172 :  
+		case TECLA_173 : 
+		case TECLA_174 : 
+		case TECLA_175 : 
+		case TECLA_176 :		
+			return 19;
+			break;
+		case TECLA_153 : 
+		case TECLA_154 :  
+		case TECLA_155 :  
+		case TECLA_156 : 
+		case TECLA_157 :  
+		case TECLA_158 :  
+		case TECLA_159 :  
+		case TECLA_160 :			
+			return 20;
+			break;
+		case TECLA_161 :
+		case TECLA_162 : 
+		case TECLA_163 : 
+		case TECLA_164 :  
+		case TECLA_165 : 
+		case TECLA_166 : 
+		case TECLA_167 : 
+		case TECLA_168 :			
+			return 21;		
+			break;		
+		
+		default:
+			return 0;
+			break;
+	} 
+	
+	
+}
+/*
 unsigned char GetPortIndex_OfKey(unsigned char KeyIndex)
 {
 	unsigned char PosPort = 0;
@@ -180,6 +417,7 @@ unsigned char GetPortIndex_OfKey(unsigned char KeyIndex)
 	{20, 20, 20, 20, 20, 20, 20, 20},
 	{21, 21, 21, 21, 21, 21, 21, 21}
 	
+*/
 	/*{0, 0, 0, 0, 0, 0, 0, 0},
 	{1, 1, 1, 1, 1, 1, 1, 1},
 	{2, 2, 2, 2, 2, 2, 2, 2},
@@ -198,6 +436,7 @@ unsigned char GetPortIndex_OfKey(unsigned char KeyIndex)
 	{3, 3, 3, 3, 3, 3, 3, 3},
 	{4, 4, 4, 4, 4, 4, 4, 4}*/
 	
+/*
 	};
 	
 	for (PosPort = 0; PosPort < (7+5+5+5); PosPort++)
@@ -211,7 +450,214 @@ unsigned char GetPortIndex_OfKey(unsigned char KeyIndex)
 
 	return 0;
 }
+*/
+unsigned char GetByteMask_OfKey(unsigned char KeyIndex)
+{
+	switch (KeyIndex)
+	{
+		case TECLA_17:
+		case TECLA_25:
+		case TECLA_49:
+		case TECLA_33:
+		case TECLA_41:
+		case TECLA_1:
+		case TECLA_9:
+		case TECLA_57:
+		case TECLA_65:
+		case TECLA_89:
+		case TECLA_73:
+		case TECLA_81:
+		case TECLA_97:
+		case TECLA_105:
+		case TECLA_129:
+		case TECLA_113:
+		case TECLA_121:
+		case TECLA_137:
+		case TECLA_145:
+		case TECLA_169:
+		case TECLA_153:
+		case TECLA_161:
+			return 0xFE;
+			break;
+		case TECLA_2:
+		case TECLA_10:
+		case TECLA_18:
+		case TECLA_26:
+		case TECLA_34:
+		case TECLA_42:	
+		case TECLA_50:
+		case TECLA_58:
+		case TECLA_66:
+		case TECLA_90:
+		case TECLA_74:
+		case TECLA_82:
+		case TECLA_98:
+		case TECLA_106:
+		case TECLA_130:
+		case TECLA_114:
+		case TECLA_122:
+		case TECLA_138:
+		case TECLA_146:
+		case TECLA_170:
+		case TECLA_154:
+		case TECLA_162:
+			return 0xFD;
+			break;
+		case TECLA_3:
+		case TECLA_19:
+		case TECLA_27:
+		case TECLA_35:
+		case TECLA_43:
+		case TECLA_51:
+		case TECLA_11:
+		case TECLA_59:
+		case TECLA_67:
+		case TECLA_91:
+		case TECLA_75:
+		case TECLA_83:
+		case TECLA_99:
+		case TECLA_107:
+		case TECLA_131:
+		case TECLA_115:
+		case TECLA_123:
+		case TECLA_139:
+		case TECLA_147:
+		case TECLA_171:
+		case TECLA_155:
+		case TECLA_163:
+			return 0xFB;
+			break;
+		case TECLA_4:
+		case TECLA_20:
+		case TECLA_28:
+		case TECLA_36:
+		case TECLA_44:
+		case TECLA_52:			
+		case TECLA_12:
+		case TECLA_60:
+		case TECLA_68:
+		case TECLA_92:
+		case TECLA_76:
+		case TECLA_84:
+		case TECLA_100:
+		case TECLA_108:
+		case TECLA_132:
+		case TECLA_116:
+		case TECLA_124:
+		case TECLA_140:
+		case TECLA_148:
+		case TECLA_172:
+		case TECLA_156:
+		case TECLA_164:
+			return 0xF7;
+			break;
+		case TECLA_5:
+		case TECLA_21:
+		case TECLA_29:
+		case TECLA_37:
+		case TECLA_45:
+		case TECLA_53:			
+		case TECLA_13:
+		case TECLA_61:
+		case TECLA_69:
+		case TECLA_93:
+		case TECLA_77:
+		case TECLA_85:
+		case TECLA_101:
+		case TECLA_109:
+		case TECLA_133:
+		case TECLA_117:
+		case TECLA_125:
+		case TECLA_141:
+		case TECLA_149:
+		case TECLA_173:
+		case TECLA_157:
+		case TECLA_165:
+			return 0xEF;
+			break;
+		case TECLA_6:
+		case TECLA_22:
+		case TECLA_30:
+		case TECLA_54:
+		case TECLA_38:
+		case TECLA_46:
+		case TECLA_14:
+		case TECLA_62:
+		case TECLA_70:
+		case TECLA_94:
+		case TECLA_78:
+		case TECLA_86:
+		case TECLA_102:
+		case TECLA_110:
+		case TECLA_134:
+		case TECLA_118:
+		case TECLA_126:
+		case TECLA_142:
+		case TECLA_150:
+		case TECLA_174:
+		case TECLA_158:
+		case TECLA_166:
+			return 0xDF;
+			break;
+		case TECLA_7:
+		case TECLA_23:
+		case TECLA_31:
+		case TECLA_39:
+		case TECLA_47:
+		case TECLA_55:			
+		case TECLA_15:
+		case TECLA_63:
+		case TECLA_71:
+		case TECLA_95:
+		case TECLA_79:
+		case TECLA_87:
+		case TECLA_103:
+		case TECLA_111:
+		case TECLA_135:
+		case TECLA_119:
+		case TECLA_127:
+		case TECLA_143:
+		case TECLA_151:
+		case TECLA_175:
+		case TECLA_159:
+		case TECLA_167:
+			return 0xBF;
+			break;
+		case TECLA_8:
+		case TECLA_24:
+		case TECLA_32:
+		case TECLA_40:
+		case TECLA_48:
+		case TECLA_56:
+		case TECLA_16:
+		case TECLA_64:
+		case TECLA_72:
+		case TECLA_96:
+		case TECLA_80:
+		case TECLA_88:
+		case TECLA_104:
+		case TECLA_112:
+		case TECLA_136:
+		case TECLA_120:
+		case TECLA_128:
+		case TECLA_144:
+		case TECLA_152:
+		case TECLA_176:
+		case TECLA_160:
+		case TECLA_168:
+			return 0x7F;
+			break;
 
+
+		
+		default:
+			return 0;
+			break;
+	} 
+	
+	
+}
+/*
 unsigned char GetByteMask_OfKey(unsigned char KeyIndex)
 {
 	unsigned char PosPort = 0;
@@ -255,7 +701,28 @@ unsigned char GetByteMask_OfKey(unsigned char KeyIndex)
 	}
 	return 0;
 }
-
+*/
+unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
+{
+	if ((KeyIndex >= TECLA_1) && (KeyIndex <= TECLA_16))
+		return ENDERECO_PCA8575D_MM1300;
+	else if((KeyIndex >= TECLA_17) && (KeyIndex <= TECLA_47))
+		return ENDERECO_PCA_2_MM1300;
+	else if((KeyIndex >= TECLA_48) && (KeyIndex <= TECLA_56))
+		return ENDERECO_PCA_2_MM1300;
+	else if((KeyIndex >= TECLA_57) && (KeyIndex <= TECLA_96))
+		return ENDERECO_PCA_3_MM1200_A;
+	else if((KeyIndex >= TECLA_97) && (KeyIndex <= TECLA_136))
+		return ENDERECO_PCA_3_MM1200_B;
+	else if((KeyIndex >= TECLA_137) && (KeyIndex <= TECLA_138))
+		return ENDERECO_PCA_3_MM1200_C;
+	else if((KeyIndex >= TECLA_139) && (KeyIndex <= TECLA_167))
+		return ENDERECO_PCA_3_MM1200_C;
+	else if((KeyIndex >= TECLA_168) && (KeyIndex <= TECLA_176))
+		return ENDERECO_PCA_3_MM1200_C;
+	else return 0;
+}
+/*
 unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
 {
 
@@ -300,6 +767,7 @@ unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
 		}
 	}
 	return 0;
+*/
 	
 /*	switch (KeyIndex)
 	{
@@ -326,8 +794,6 @@ unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
 			break;
 	}
 */
-}
-
 
 void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 {
@@ -715,7 +1181,7 @@ void RunKeyLedsOneTime(void)
 	unsigned char cntBank;
 	//unsigned char barramento;
 	unsigned char temp_io_register[7+5+5+5];
-	unsigned int i;
+	//unsigned int i;
 	
 	//salva situacao dos leds 
 	
@@ -729,6 +1195,7 @@ void RunKeyLedsOneTime(void)
 	//}
 	
 	//salva situacao dos leds  para teclados expansores
+	/*
 	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
 		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
 	{ 
@@ -754,8 +1221,7 @@ void RunKeyLedsOneTime(void)
 				leRegistroUnico(ENDERECO_PCA_3_MM1200_C, (io_configuration_register_banks[cntBank-17]), &temp_io_register[cntBank]);
 		}							
 	}	
-	
-	
+	*/
 	
 	//Apaga todos os Leds 
 	ApagaTodasAsTeclas();
@@ -774,6 +1240,7 @@ void RunKeyLedsOneTime(void)
 	escreveRegistro(ENDERECO_PCA8575D_MM1300, temp_io_register[5], temp_io_register[6]);
 	
 	//restaura situacao dos leds  para teclados expansores
+	/*
 	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
 		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
 	{ 
@@ -799,8 +1266,7 @@ void RunKeyLedsOneTime(void)
 				escreveRegistro(ENDERECO_PCA_3_MM1200_C, (io_configuration_register_banks[cntBank-17]), temp_io_register[cntBank]);
 		}							
 	}	
-
-
+	*/
 }
 
 unsigned char Key33And34And35PressedToEnterInTestMode(void)
@@ -920,7 +1386,7 @@ void RunTestMode(void)
 		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], 0xFF); //Configura como entrada		
 		//Efetua a leitura do banco
 		leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[2]),&bufferLeituraPCAParaMenuDoTeste);
-		printf("Debug leu o banco %u", bufferLeituraPCAParaMenuDoTeste);
+		//printf("Debug leu o banco %u", bufferLeituraPCAParaMenuDoTeste);
 		
 		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], TempPort0);
 		if (bufferLeituraPCAParaMenuDoTeste == 0xF8)
