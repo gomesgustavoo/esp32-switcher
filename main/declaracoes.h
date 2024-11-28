@@ -45,6 +45,7 @@ void inicializaPlacaTecladoUSB(void);
 */
 void app_main(void);
 void inicializaStatusOfKeyBoardLeds(void);
+void udp_server_task(void *pvParameters);
 
 /*
 //usbcomm.c
