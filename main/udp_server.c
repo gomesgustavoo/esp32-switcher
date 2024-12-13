@@ -39,6 +39,8 @@ esp_err_t configure_ethernet(void) {
         ESP_LOGE(TAG, "Failed to create Ethernet netif");
         return ESP_FAIL;
     }
+    ESP_ERROR_CHECK(esp_netif_dhcpc_start(eth_netif));
+
 
     // Configure MAC for WT32-ETH01
     eth_esp32_emac_config_t esp32_mac_config = ETH_ESP32_EMAC_DEFAULT_CONFIG();
