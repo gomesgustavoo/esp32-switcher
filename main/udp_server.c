@@ -5,10 +5,12 @@
 #include "esp_log.h"
 #include "esp_eth.h"
 #include "lwip/sockets.h"
+#include <string.h>
 
 static const char *TAG = "ETHERNET";
 
 #define PORT 5000  // Port to listen on
+#define MAX_BUFFER_SIZE 256
 
 static esp_netif_t *eth_netif = NULL;
 
@@ -129,18 +131,42 @@ esp_err_t start_udp_server(void) {
         ESP_LOGI(TAG, "Received %d bytes from %s:%d: '%s'", len,
                  inet_ntoa(source_addr.sin_addr), ntohs(source_addr.sin_port), rx_buffer);
 
-        // Echo the message back to the sender
-        int err = sendto(sock, rx_buffer, len, 0, (struct sockaddr *)&source_addr, addr_len);
-        if (err < 0) {
-            ESP_LOGE(TAG, "Error sending response: errno %d", errno);
-            break;
-        }
+        // Processar o comando recebido
+        udp_command_t cmd;
+        cmd.source_addr = source_addr;
+        strncpy(cmd.command, rx_buffer, MAX_BUFFER_SIZE - 1);
+        cmd.command[MAX_BUFFER_SIZE - 1] = '\0';
+
+        process_command(&cmd, sock);
     }
     // Cleanup
     close(sock);
     ESP_LOGI(TAG, "UDP server stopped");
     return ESP_OK;
 }
+
+void process_command(const udp_command_t *cmd, int sock) {
+    ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
+    parse_and_execute(cmd->command, &cmd->source_addr, sock);
+}
+
+void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
+    if (strncmp(command, "O", 1) == 0) {
+        int led_id = strtol(command + 1, NULL, 16); // Lê o ID do LED em hexadecimal
+        ESP_LOGI(TAG, "Ligar LED: %d", led_id);
+    } else if (strncmp(command, "F", 1) == 0) {
+        int led_id = strtol(command + 1, NULL, 16);
+        ESP_LOGI(TAG, "Desligar LED: %d", led_id);
+    } else if (strncmp(command, "HI", 2) == 0) {
+        const char *response = "data1.0.0";
+        sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+        ESP_LOGI(TAG, "Handshake enviado para %s:%d", 
+                 inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
+    } else {
+        ESP_LOGW(TAG, "Comando não reconhecido: '%s'", command);
+    }
+}
+
 void log_ip_address(esp_netif_t *netif) {
     esp_netif_ip_info_t ip_info;
     if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
