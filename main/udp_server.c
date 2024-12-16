@@ -152,11 +152,18 @@ void process_command(const udp_command_t *cmd, int sock) {
 
 void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
     if (strncmp(command, "O", 1) == 0) {
-        int led_id = strtol(command + 1, NULL, 16); // Lê o ID do LED em hexadecimal
+        int led_id = strtol(command + 1, NULL, 16);
         ESP_LOGI(TAG, "Ligar LED: %d", led_id);
     } else if (strncmp(command, "F", 1) == 0) {
         int led_id = strtol(command + 1, NULL, 16);
         ESP_LOGI(TAG, "Desligar LED: %d", led_id);
+    } else if (strncmp(command, "A", 1) == 0) {
+        int toggle = strtol(command + 1, NULL, 16);
+        if (toggle) {
+            ESP_LOGI(TAG, "Turn ALL LEDs OFF");
+        } else {
+            ESP_LOGI(TAG, "Turn ALL LEDs ON");
+        }
     } else if (strncmp(command, "HI", 2) == 0) {
         const char *response = "data1.0.0";
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
