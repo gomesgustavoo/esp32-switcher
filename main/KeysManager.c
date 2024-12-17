@@ -876,7 +876,7 @@ void RunKeyLedsOneTime(void)
 	}	
 	*/
 	
-	//Apaga todos os Leds 
+	//Apaga todos os Leds
 	ApagaTodasAsTeclas();
 	
 	//ConfereERotacionaLedsDeTecladosExpansores(); 
@@ -942,18 +942,19 @@ void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo)
 void AcendeTodasAsTeclas(void)
 {
 	AplicaValorFixoEmTodosOsPCAS(0x00);
+	printf("AcendeTodasAsTeclas chamada!!\n");
 }
 
 void ApagaTodasAsTeclas(void)
 {
 	AplicaValorFixoEmTodosOsPCAS(0xFF);
+	printf("ApagaTodasAsTeclas chamada!!\n");
 }
 
 
 void AcendeAsTeclasPares(void)
 {
 	AplicaValorFixoEmTodosOsPCAS(0x55);
-
 }
 
 void AcendeAsTeclasImpares(void)
