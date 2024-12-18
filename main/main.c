@@ -26,6 +26,7 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_err.h"
+#include "udp_server.h"
 
 
 unsigned char TesteCode = 143;
@@ -117,10 +118,13 @@ void app_main(void)
 		}
 	}
 
+	// Create UDP server task on CPU1
+    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, 5, NULL, 1);
+
 
 	//Loop infinito da aplicação
 	while (1)
-	{	
+	{
 		//Inicializa o StatusofKeyboardLeds
 		inicializaStatusOfKeyBoardLeds();
 		
@@ -147,4 +151,11 @@ void inicializaStatusOfKeyBoardLeds(void)
 	StatusOfEncoderBoardLeds[1] = 0xFF;
 
 	RunKeyLedsOneTime();
+}
+
+// Inicia o servidor udp na porta 500
+void udp_server_task(void *pvParameters) {
+	printf("UDP Server Task started on CPU %d\n", xPortGetCoreID());
+	start_udp_server();  // Call your UDP server function here
+	vTaskDelete(NULL);   // Clean up the task after it exits
 }
