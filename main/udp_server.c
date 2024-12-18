@@ -1,5 +1,6 @@
 #include "udp_server.h"
 #include "declaracoes.h"
+#include "definicoes.h"
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_netif.h"
@@ -168,10 +169,10 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
     } else if (strncmp(command, "A", 1) == 0) {
         int toggle = strtol(command + 1, NULL, 16);
         if (toggle) {
-            ApagaTodasAsTeclas();
+            ManageKeyLeds(COMANDO_KEYLED_OFF, ALL_LEDS);
             ESP_LOGI(TAG, "Turn ALL LEDs OFF");
         } else {
-            AcendeTodasAsTeclas();
+            ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
             ESP_LOGI(TAG, "Turn ALL LEDs ON");
         }
     } else if (strncmp(command, "HI", 2) == 0) {

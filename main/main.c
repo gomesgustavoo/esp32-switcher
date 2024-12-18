@@ -102,7 +102,10 @@ void app_main(void)
 	for (cntTmp = 7; cntTmp < (7+5+5+5); cntTmp++) 
 	{
 		bufferLeituraPCA1_seminterrupcao[cntTmp] = bufferLeituraPCA1[cntTmp];
-	}		
+	}
+
+	//Inicializa o StatusofKeyboardLeds
+	inicializaStatusOfKeyBoardLeds();		
 
 	//ESP rotina de testes
 	leRegistro(0x22, (input_port_register_bank[0] | 0x80),  &bufferLeituraPCA1[0]);
@@ -122,13 +125,12 @@ void app_main(void)
     xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, 5, NULL, 1);
 
 
-	//Loop infinito da aplicação
+	//Loop principal da aplicação
 	while (1)
 	{
-		//Inicializa o StatusofKeyboardLeds
-		inicializaStatusOfKeyBoardLeds();
-		
-		//Faz a leitura
+		//Faz a varredura das teclas e envia ao udp socket o botão que foi pressionado e solto no formato:
+		//D<id> sendo id(unsigned char) o botão que foi pressionado
+		//U<id> sendo id(unsigned char) o botão que foi solto
 		ThreadReadKey_SemInt();
 
 		//Delay para seguir o funcionamento correto do código

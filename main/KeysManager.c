@@ -552,11 +552,11 @@ unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
 	else return 0;
 }
 
-void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
+void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 {
 	unsigned char PortIndex, PosPort;
 
-	if (Cmd_On_or_Off_or_Blink == CMD_KEYLED_ON)
+	if (comando == COMANDO_KEYLED_ON)
 	{
 		
 		if (KeyIndex == ALL_LEDS)
@@ -594,7 +594,7 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 		}	
 	}
 
-	else if (Cmd_On_or_Off_or_Blink == CMD_KEYLED_OFF)
+	else if (comando == COMANDO_KEYLED_OFF)
 	{
 		if (KeyIndex == ALL_LEDS)
 		{
@@ -632,6 +632,7 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 	
 	
 	//aplica off no registro de piscada
+	/*
 	if ((Cmd_On_or_Off_or_Blink == CMD_KEYLED_OFF) || (Cmd_On_or_Off_or_Blink == CMD_KEYLED_ON))
 	{
 		
@@ -667,6 +668,7 @@ void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex)
 			StatusOfKeyBoardLeds[PortIndex][1] = (StatusOfKeyBoardLeds[PortIndex][1]) & (GetByteMask_OfKey(KeyIndex));
 		}	
 	}
+*/
 }
 
 void RotacionaLedsDePCAEnderecado(unsigned char EnderecoPCA)
@@ -948,7 +950,7 @@ void AcendeTodasAsTeclas(void)
 void ApagaTodasAsTeclas(void)
 {
 	AplicaValorFixoEmTodosOsPCAS(0xFF);
-	//printf("ApagaTodasAsTeclas chamada!!\n");
+	printf("ApagaTodasAsTeclas chamada!!\n");
 }
 
 
@@ -1336,7 +1338,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 					//Aqui deve chamar a função buttonDown passando como parâmetro o hexadecimal da tecla precionada
 					udp_send_buttonDown(ArrayIndicaTecla[cntBank][cntTmp]);
 					printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
-					ManageKeyLeds(CMD_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
+					ManageKeyLeds(COMANDO_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
 				}
 				else 
