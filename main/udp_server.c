@@ -161,11 +161,15 @@ void process_command(const udp_command_t *cmd, int sock) {
 
 void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
     if (strncmp(command, "O", 1) == 0) {
-        int led_id = strtol(command + 1, NULL, 16);
-        ESP_LOGI(TAG, "Ligar LED: %d", led_id);
+        unsigned long led_id = strtoul(command + 1, NULL, 10);
+        unsigned char led_id_char = (unsigned char)led_id;
+        ManageKeyLeds(COMANDO_KEYLED_ON, led_id_char);
+        ESP_LOGI(TAG, "Ligar Led: %u", led_id_char);
     } else if (strncmp(command, "F", 1) == 0) {
-        int led_id = strtol(command + 1, NULL, 16);
-        ESP_LOGI(TAG, "Desligar LED: %d", led_id);
+        unsigned long led_id = strtoul(command + 1, NULL, 10);
+        unsigned char led_id_char = (unsigned char)led_id;
+        ManageKeyLeds(COMANDO_KEYLED_OFF, led_id_char);
+        ESP_LOGI(TAG, "Desligar LED: %d", led_id_char);
     } else if (strncmp(command, "A", 1) == 0) {
         int toggle = strtol(command + 1, NULL, 16);
         if (toggle) {
@@ -176,7 +180,7 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
             ESP_LOGI(TAG, "Turn ALL LEDs ON");
         }
     } else if (strncmp(command, "HI", 2) == 0) {
-        const char *response = "data1.0.0";
+        const char *response = "4S - Esp32 Mago Switcher :";
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
         ESP_LOGI(TAG, "Handshake enviado para %s:%d", 
                  inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));

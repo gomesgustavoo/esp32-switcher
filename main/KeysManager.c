@@ -569,9 +569,9 @@ void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 
 		}
 		else {
-
 			PortIndex = GetPortIndex_OfKey(KeyIndex);
 			StatusOfKeyBoardLeds[PortIndex][0] = (StatusOfKeyBoardLeds[PortIndex][0]) & (GetByteMask_OfKey(KeyIndex));
+			printf("flag 1 - ManageKeyLeds ");
 
 			
 			if ((GetI2CAddress_OfKey(KeyIndex)) == ENDERECO_PCA8575D_MM1300)
@@ -1262,7 +1262,6 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 
 		{	// reescreve configuração de teclas acesas e apagadas normalmente
 			escreveRegistro(ENDERECO_PCA8575D_MM1300, StatusOfKeyBoardLeds[5][0], StatusOfKeyBoardLeds[6][0]);
-			
 		}
 		else // se alguma tecla pisca no banco
 		{ 
@@ -1335,7 +1334,6 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 			{
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
-					//Aqui deve chamar a função buttonDown passando como parâmetro o hexadecimal da tecla precionada
 					udp_send_buttonDown(ArrayIndicaTecla[cntBank][cntTmp]);
 					printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 					ManageKeyLeds(COMANDO_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
@@ -1343,7 +1341,6 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 				}
 				else 
 				{
-					//SCQ_InsertNewCommand(CMD_KEY_NOTIFY,  ArrayIndicaTecla[cntBank][cntTmp], RELEASED);
 					udp_send_buttonUp(ArrayIndicaTecla[cntBank][cntTmp]);
 					printf("TECLA SOLTA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] |= varBitSelect;

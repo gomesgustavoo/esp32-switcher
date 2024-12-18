@@ -24,7 +24,7 @@ extern unsigned char AuxVarToShowVersionOfHardwareBoard;
 void ThreadProcessaComandosUSB(void);
 void RunKeyLedsOneTime(void);
 void RunKeysJustFirstLine(void);
-void ManageKeyLeds(unsigned char Cmd_On_or_Off_or_Blink, unsigned char KeyIndex);
+void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex);
 unsigned char Key33And34And35PressedToEnterInTestMode(void);
 void RunTestMode(void);
 void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress);
