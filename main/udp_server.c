@@ -1,11 +1,13 @@
 #include "udp_server.h"
 #include "declaracoes.h"
 #include "driver/gpio.h"
+#include "esp_err.h"
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_eth.h"
 #include "lwip/sockets.h"
+#include <stdio.h>
 #include <string.h>
 
 static const char *TAG = "ETHERNET";
@@ -14,6 +16,11 @@ static const char *TAG = "ETHERNET";
 #define MAX_BUFFER_SIZE 256
 
 static esp_netif_t *eth_netif = NULL;
+
+// Endereço do cliente global
+static int g_sock =-1;
+static struct sockaddr_in g_client_addr;
+static bool g_client_addr_initialized = false;
 
 // Function to initialize Ethernet
 esp_err_t configure_ethernet(void) {
@@ -172,8 +179,31 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
         ESP_LOGI(TAG, "Handshake enviado para %s:%d", 
                  inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
+        // Salva o endereço do cliente em variáveis globais
+        g_sock = sock;
+        g_client_addr = *source_addr;
+        g_client_addr_initialized = true;
+
     } else {
         ESP_LOGW(TAG, "Comando não reconhecido: '%s'", command);
+    }
+}
+
+void buttonDown(unsigned char buttonId) {
+    if (!g_client_addr_initialized || g_sock < 0) {
+        ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
+        return;
+    }
+
+    char response[10];
+
+    snprintf(response, sizeof(response), "D%u", buttonId);
+
+    int err = sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+    if (err < 0) {
+        ESP_LOGE(TAG, "Erro ao enviar botão pressionado: %s", strerror(errno));
+    } else {
+        ESP_LOGI(TAG, "Mensagem enviada: %s (Bytes enviados: %d)", response, err);
     }
 }
 

@@ -18,7 +18,7 @@ Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
 			
 
 *****************************************************************************/
-
+#include "udp_server.h"
 #include "declaracoes.h"
 #include "definicoes.h"
 #include "registrosPCA9506.h"
@@ -877,7 +877,7 @@ void RunKeyLedsOneTime(void)
 	*/
 	
 	//Apaga todos os Leds
-	ApagaTodasAsTeclas();
+	//ApagaTodasAsTeclas();
 	
 	//ConfereERotacionaLedsDeTecladosExpansores(); 
 	
@@ -948,7 +948,7 @@ void AcendeTodasAsTeclas(void)
 void ApagaTodasAsTeclas(void)
 {
 	AplicaValorFixoEmTodosOsPCAS(0xFF);
-	printf("ApagaTodasAsTeclas chamada!!\n");
+	//printf("ApagaTodasAsTeclas chamada!!\n");
 }
 
 
@@ -1328,12 +1328,13 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 			else if (cntTmp == 7)
 				varBitSelect = 0x80;
 			
-		  	// verifica se houve alteração e notifica USB através de comando na fila
+		  	// verifica se houve alteração
 			if ((((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])&varBitSelect) != ((bufferLeituraPCA1_seminterrupcao[cntBank])&varBitSelect)))
 			{
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
-					//SCQ_InsertNewCommand(CMD_KEY_NOTIFY,  ArrayIndicaTecla[cntBank][cntTmp], PRESSED);
+					//Aqui deve chamar a função buttonDown passando como parâmetro o hexadecimal da tecla precionada
+					buttonDown(ArrayIndicaTecla[cntBank][cntTmp]);
 					printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 					ManageKeyLeds(CMD_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
