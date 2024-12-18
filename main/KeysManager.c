@@ -1334,7 +1334,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
 					//Aqui deve chamar a função buttonDown passando como parâmetro o hexadecimal da tecla precionada
-					buttonDown(ArrayIndicaTecla[cntBank][cntTmp]);
+					udp_send_buttonDown(ArrayIndicaTecla[cntBank][cntTmp]);
 					printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 					ManageKeyLeds(CMD_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
@@ -1342,6 +1342,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 				else 
 				{
 					//SCQ_InsertNewCommand(CMD_KEY_NOTIFY,  ArrayIndicaTecla[cntBank][cntTmp], RELEASED);
+					udp_send_buttonUp(ArrayIndicaTecla[cntBank][cntTmp]);
 					printf("TECLA SOLTA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] |= varBitSelect;
 				}

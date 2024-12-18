@@ -189,7 +189,7 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
     }
 }
 
-void buttonDown(unsigned char buttonId) {
+void udp_send_buttonDown(unsigned char buttonId) {
     if (!g_client_addr_initialized || g_sock < 0) {
         ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
         return;
@@ -198,6 +198,24 @@ void buttonDown(unsigned char buttonId) {
     char response[10];
 
     snprintf(response, sizeof(response), "D%u", buttonId);
+
+    int err = sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+    if (err < 0) {
+        ESP_LOGE(TAG, "Erro ao enviar botão pressionado: %s", strerror(errno));
+    } else {
+        ESP_LOGI(TAG, "Mensagem enviada: %s (Bytes enviados: %d)", response, err);
+    }
+}
+
+void udp_send_buttonUp(unsigned char buttonId) {
+    if (!g_client_addr_initialized || g_sock < 0) {
+        ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
+        return;
+    }
+
+    char response[10];
+
+    snprintf(response, sizeof(response), "U%u", buttonId);
 
     int err = sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
     if (err < 0) {
