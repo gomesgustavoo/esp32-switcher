@@ -571,7 +571,6 @@ void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 		else {
 			PortIndex = GetPortIndex_OfKey(KeyIndex);
 			StatusOfKeyBoardLeds[PortIndex][0] = (StatusOfKeyBoardLeds[PortIndex][0]) & (GetByteMask_OfKey(KeyIndex));
-			printf("flag 1 - ManageKeyLeds ");
 
 			
 			if ((GetI2CAddress_OfKey(KeyIndex)) == ENDERECO_PCA8575D_MM1300)
