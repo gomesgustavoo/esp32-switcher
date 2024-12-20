@@ -121,21 +121,26 @@ void app_main(void)
 		}
 	}
 
+	//Create a task de varredura das teclas com afinidade no CPU 0
+	xTaskCreatePinnedToCore(readkey_task, "Loop de Varredura", 2048, NULL, configMAX_PRIORITIES - 1, NULL, 0);
+
 	// Create UDP server task on CPU1
-    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, 5, NULL, 1);
+    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, configMAX_PRIORITIES - 2, NULL, 1);
 
-
+/*
 	//Loop principal da aplicação
 	while (1)
 	{
 		//Faz a varredura das teclas e envia ao udp socket o botão que foi pressionado e solto no formato:
 		//D<id> sendo id(unsigned char) o botão que foi pressionado
 		//U<id> sendo id(unsigned char) o botão que foi solto
-		ThreadReadKey_SemInt();
+		//ThreadReadKey_SemInt();
+		readkey_task();
 
 		//Delay para seguir o funcionamento correto do código
 		vTaskDelay(pdMS_TO_TICKS(20));
 	}
+*/
 }
 
 //ESP Rotina responsável por inicializar o Status of keyboard leds que vai ser utilizado no ThreadReadKey
@@ -154,10 +159,22 @@ void inicializaStatusOfKeyBoardLeds(void)
 
 	RunKeyLedsOneTime();
 }
+//Task de varredura, Loop principal da aplicação dalay de 20ms entre cada chamada
+void readkey_task(void *pvParameters) {
+	printf("Task de Varredura started on CPU %d\n", xPortGetCoreID());
+	while (1) {
+		ThreadReadKey_SemInt();
+		//debug
+		print_task_stats();
+		vTaskDelay(pdMS_TO_TICKS(20));
+	}
+}
 
 // Inicia o servidor udp na porta 500
 void udp_server_task(void *pvParameters) {
 	printf("UDP Server Task started on CPU %d\n", xPortGetCoreID());
-	start_udp_server();  // Call your UDP server function here
-	vTaskDelete(NULL);   // Clean up the task after it exits
+	start_udp_server(); 
+	while (1){
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}   
 }
