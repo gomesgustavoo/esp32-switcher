@@ -18,9 +18,6 @@ Hardware: PSOC microcontroler - CY8C24894-24LT
 Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 
 *****************************************************************************/
-
-//#include <m8c.h>        // part specific constants and macros
-//#include "PSoCAPI.h"    // PSoC API definitions for all User Modules
 #include "declaracoes.h"
 #include "definicoes.h"
 #include "registrosPCA9506.h"
@@ -29,8 +26,8 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_err.h"
+#include "udp_server.h"
 
-//#pragma interrupt_handler lowVoltageDetected
 
 unsigned char TesteCode = 143;
 unsigned char timerTick;
@@ -39,19 +36,12 @@ extern unsigned char AuxVarToBlinkBanks[7+5+5+5];
 unsigned char AuxVarToShowIfEncoderAandBAreConnected;
 unsigned char AuxVarToShowVersionOfHardwareBoard;
 
-
-//unsigned char g_has_received_some_led_usb_command;
-
 extern unsigned char bufferLeituraPCA1[7+5+5+5];
 extern unsigned char bufferLeituraPCA1_seminterrupcao[7+5+5+5];
 extern unsigned char ArrayIndicaTecla[7+5+5+5][8];
 
 extern unsigned char StatusOfKeyBoardLeds[7+5+5+5][2];
 extern unsigned char StatusOfEncoderBoardLeds[2];
-//extern unsigned char PRT2DR_Old, PRT2DR_Sampled;
-
-// TODO testar no raspberry ubuntu
-
 
 void app_main(void)
 {
@@ -107,36 +97,16 @@ void app_main(void)
 		bufferLeituraPCA1_seminterrupcao[cntTmp] = bufferLeituraPCA1[cntTmp];
 	}
 	
-	//for (cntTmp = 5; cntTmp < 7; cntTmp++) 
-	//{
-	
-		lePCA8575RegistroUnico(ENDERECO_PCA8575D_MM1300, &bufferLeituraPCA1_seminterrupcao[5]); //seis le automatico
-	//}
+	lePCA8575RegistroUnico(ENDERECO_PCA8575D_MM1300, &bufferLeituraPCA1_seminterrupcao[5]); //seis le automatico
 
 	for (cntTmp = 7; cntTmp < (7+5+5+5); cntTmp++) 
 	{
 		bufferLeituraPCA1_seminterrupcao[cntTmp] = bufferLeituraPCA1[cntTmp];
-	}		
-	
-	/***********************************************************************************
-	 Thread responsável por processar rotina de testes
-	************************************************************************************/
-	/*
-	if (Key33And34And35PressedToEnterInTestMode())
-	{
-		if (Key33And34And35PressedToEnterInTestMode())
-		{	
-			if (Key33And34And35PressedToEnterInTestMode())
-			{
-				if (Key33And34And35PressedToEnterInTestMode())
-				{
-					RunTestMode();
-				
-				}
-			}
-		}
 	}
-	*/
+
+	//Inicializa o StatusofKeyboardLeds
+	inicializaStatusOfKeyBoardLeds();		
+
 	//ESP rotina de testes
 	leRegistro(0x22, (input_port_register_bank[0] | 0x80),  &bufferLeituraPCA1[0]);
 	//Entra na condicional caso pressione e mantenha pressionado 3 teclas, equivalentes ao uchar 143
@@ -151,18 +121,20 @@ void app_main(void)
 		}
 	}
 
+	// Create UDP server task on CPU1
+    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, 5, NULL, 1);
 
-	//Loop infinito da aplicação
+
+	//Loop principal da aplicação
 	while (1)
-	{	
-		//printf("chegou no loop da aplicação\n");
-		//Inicializa o StatusofKeyboardLeds
-		inicializaStatusOfKeyBoardLeds();
-		//Faz a leitura
+	{
+		//Faz a varredura das teclas e envia ao udp socket o botão que foi pressionado e solto no formato:
+		//D<id> sendo id(unsigned char) o botão que foi pressionado
+		//U<id> sendo id(unsigned char) o botão que foi solto
 		ThreadReadKey_SemInt();
-		//printf("retornou ao loop da aplicação\n");
 
-		vTaskDelay(pdMS_TO_TICKS(120));
+		//Delay para seguir o funcionamento correto do código
+		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 }
 
@@ -183,59 +155,9 @@ void inicializaStatusOfKeyBoardLeds(void)
 	RunKeyLedsOneTime();
 }
 
-/****************************************************************************************
- Rotina responsável por tratar a interrupção por queda de tensão
-****************************************************************************************/
-/*
-void lowVoltageDetected(void )
-{
-	RunKeysJustFirstLine();
-	RunKeysJustFirstLine();
-	inicializaPCAs();
+// Inicia o servidor udp na porta 500
+void udp_server_task(void *pvParameters) {
+	printf("UDP Server Task started on CPU %d\n", xPortGetCoreID());
+	start_udp_server();  // Call your UDP server function here
+	vTaskDelete(NULL);   // Clean up the task after it exits
 }
-*/
-
-/***************************************************************************************
- Todas inicializações de interrupções e periféricos são feitas nesta rotina
-****************************************************************************************/
-/*
-void inicializaPlacaTecladoUSB(void)
-{
-	unsigned char PortIndex;
-
-	INT_VC = 0x00; //Limpa vetor de interrupções
-	M8C_EnableGInt ; //Inicializa interrupções globais
-	//M8C_DisableGInt;	
-	M8C_EnableIntMask(INT_MSK0, INT_MSK0_VOLTAGE_MONITOR); //Habilita interrupção de supervisor de tensão
-	//M8C_DisableIntMask(INT_MSK0, INT_MSK0_VOLTAGE_MONITOR); //Habilita interrupção de supervisor de tensão
-	M8C_DisableIntMask(INT_MSK0, INT_MSK0_GPIO);   // C code to enable GPIO interrupt
-	
-	RCQ_InitializeQueue(); //Inicializa fila de recepcao de comandos
-	SCQ_InitializeQueue(); //Inicializa fila de envio
-	
-	//inicializaUSB();
-	inicializaTimer();
-	
-	PRT3DR |= 0x02;
-	
-	//M8C_EnableIntMask(INT_MSK0, INT_MSK0_GPIO);   // C code to enable GPIO interrupt
-	
-	//inicializa StatusOfKeyBoardLeds com todas as teclas apagadas
-	for (PortIndex = 0; PortIndex < (7+5+5+5); PortIndex++)
-	{
-		StatusOfKeyBoardLeds[PortIndex][0] = 0xFF;
-		StatusOfKeyBoardLeds[PortIndex][1] = 0xFF;
-		AuxVarToBlinkBanks[PortIndex] = 0xFF;
-	}
-	
-	g_has_received_some_led_usb_command = 0x00;
-	
-	StatusOfEncoderBoardLeds[0] = 0xFF;
-	StatusOfEncoderBoardLeds[1] = 0xFF;
-	
-	PRT2DR_Old = 0xFF;
-	PRT2DR_Sampled = 0xFF;
-	
-	
-	timerTick = VALOR_TIMEOUT_READKEY_OUTINT;
-*/

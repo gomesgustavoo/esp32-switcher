@@ -54,6 +54,7 @@ Descricao:	Definições gerais do projeto.
 /********************************************
  Definições da comunicação USB
 *********************************************/
+/*
 #define	STX						0x08 //'S' 
 #define EOM						0xFD //' ' 
 #define	TAMANHO_BUFFER_USB		0x07
@@ -82,6 +83,15 @@ Descricao:	Definições gerais do projeto.
 #define CMD_RESET				0x75
 #define CMD_KEYLED_ON_RUN_MODE	0x76
 #define CMD_CHECKRESET			0x77
+*/
+
+/********************************************
+ Definições da comunicação pela rede
+*********************************************/
+#define COMANDO_KEYLED_ON 0x73
+#define COMANDO_KEYLED_OFF 0X74
+#define COMANDO_RESET 0x75
+
 #define TECLA_1					0x41
 #define TECLA_2					0x42
 #define TECLA_3					0x43
@@ -299,26 +309,6 @@ Descricao:	Definições gerais do projeto.
 #define PRESSED					0x70
 #define RELEASED				0x72
 
-
-//Enderecos na flash interna
-#define BAUD_ADDRESS			0x3F80 //Penultimo bloco da flash interna
-#define WATCHDOG_RESET_ADDRESS	0x3F40
-
-/********************************************
- Definições das filas de comunicação
-*********************************************/
-#define MAX_NUMBER_OF_COMMANDS_IN_THE_QUEUE		10
-#define NUMBER_OF_BYTES_PER_COMMAND				3
-#define INVALID_COMMAND							0xFF
-
-//Indices do buffer
-#define COMMAND_INDEX 	0
-#define DATA1_INDEX		1
-#define DATA2_INDEX		2
-
-#define VALOR_TIMEOUT_USB	10 //50ms
-
-#define VALOR_TIMEOUT_READKEY_OUTINT	3
 
 /***************************************
  Defines I2C

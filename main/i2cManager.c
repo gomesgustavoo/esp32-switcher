@@ -103,31 +103,8 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
     }
     i2c_cmd_link_delete(cmd);
 
-    //ESP abaixo funções originais diretamente traduzidas para esp, necessária adaptação de trechos para o funcionamento correto
 
-    // Configuração das entradas para HIGH (somente se for possível nos registros read-only)
-    /*
-    cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (ENDERECO_PCA_2_MM1300 << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, (input_port_register_bank[0] | 0x80), true);
-    for (cntTmp = 0; cntTmp < 5; cntTmp++) {
-        i2c_master_write_byte(cmd, 0xFF, true);
-    }
-    i2c_master_stop(cmd);
-    status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
-    if (status != ESP_OK){
-        ESP_LOGE("I2C", "Erro ao configurar as entradas do PCA para HIGH erro: %s", esp_err_to_name(status));
-    }
-    else {
-        ESP_LOGI("I2C", "Entradas configuradas como HIGH");
-    }
-    i2c_cmd_link_delete(cmd);
-    */
-    
-
-    // Configura todas as saídas para manter LEDs apagados inicialmente
-    
+    // Configura todas as saídas para manter LEDs apagados inicialmente    
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
@@ -145,46 +122,6 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
     }
     i2c_cmd_link_delete(cmd);
     
-
-    // Configura a máscara de interrupção
-    /*
-    cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, (mask_interrupt_register_banks[0] | 0x80), true);
-    for (cntTmp = 0; cntTmp < 5; cntTmp++) {
-        i2c_master_write_byte(cmd, 0xFF, true);  // Desabilita interrupções
-    }
-    i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
-    */
-
-    // Leitura para resetar o pino de interrupção (INT) para HIGH
-    /*
-    if (i2cAddress == HARDWARE_VERSION_56TECLASSEMEXPANSAO) {
-        leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
-        leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
-    } else { 
-        leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
-        leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
-    }
-    */
-
-    // Apaga todos os LEDs
-    /*
-    cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, (io_configuration_register_banks[0] | 0x80), true);
-    for (cntTmp = 0; cntTmp < 5; cntTmp++) {
-        i2c_master_write_byte(cmd, 0xFF, true);
-    }
-    i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
-    */
-
     // Leitura para atualizar variáveis
     if (i2cAddress == HARDWARE_VERSION_56TECLASSEMEXPANSAO) {
         leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1[0]);
@@ -194,9 +131,7 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         //leRegistro(i2cAddress, (input_port_register_bank[0] | 0x80), &bufferLeituraPCA1_imediatamenteAposPolling[0]);
     }
     
-
     // Mantém polaridade original
-    
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (i2cAddress << 1) | I2C_MASTER_WRITE, true);
@@ -341,18 +276,6 @@ void lePCA8575RegistroUnico(unsigned char endereco, unsigned char * buf)
 	PCA8575_ReadByte = 0;
 	retorno = lePCA8575(endereco);
 	
-/*	if (reg == 5)
-	{ 
-		PCA8575_ReadByte = (retorno & 0x00FF);
-	}
-	else if (reg == 6)
-	{
-		PCA8575_ReadByte = ((retorno>>8) & 0x00FF);
-	}
-
-	
-	*buf = PCA8575_ReadByte;
-*/
 	PCA8575_ReadByte = (retorno & 0x00FF);
 	*buf = PCA8575_ReadByte;
 	buf++;
