@@ -59,16 +59,16 @@ esp_err_t configure_ethernet(void) {
     esp32_mac_config.smi_gpio.mdio_num = GPIO_NUM_18; // MDIO pin
 
     eth_mac_config_t mac_config = {
-    .sw_reset_timeout_ms = 100,   // Default software reset timeout
-    .rx_task_stack_size = 4096,  // Default RX task stack size
-    .rx_task_prio = 15,          // Default RX task priority
+    .sw_reset_timeout_ms = 100,   // Default
+    .rx_task_stack_size = 4096,  // Default 
+    .rx_task_prio = 15,          // Default
     };
     esp_eth_mac_t *mac = esp_eth_mac_new_esp32(&esp32_mac_config, &mac_config);
 
     // Configure PHY for WT32-ETH01
     eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
-    phy_config.phy_addr = 1;              // Default PHY address
-    phy_config.reset_gpio_num = -1;       // No reset GPIO
+    phy_config.phy_addr = 1;
+    phy_config.reset_gpio_num = -1;
     phy_config.reset_timeout_ms = 200;
     esp_eth_phy_t *phy = esp_eth_phy_new_lan87xx(&phy_config);
 
@@ -92,6 +92,7 @@ esp_err_t configure_ethernet(void) {
     return ESP_OK;
 }
 
+//Inicializa o udp socket com afinidade no CPU 1, Loop infinito de leitura e processamento de comandos
 esp_err_t start_udp_server(void) {
     ESP_LOGI(TAG, "Starting UDP server...");
 
@@ -159,19 +160,23 @@ void process_command(const udp_command_t *cmd, int sock) {
     parse_and_execute(cmd->command, &cmd->source_addr, sock);
 }
 
+//Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
+    //Ligar Led específico, O<id>
     if (strncmp(command, "O", 1) == 0) {
         unsigned long led_id = strtoul(command + 1, NULL, 10);
         unsigned char led_id_char = (unsigned char)led_id;
         ManageKeyLeds(COMANDO_KEYLED_ON, led_id_char);
         ESP_LOGI(TAG, "Ligar Led: %u", led_id_char);
 
+    //Desligar Led específico F<id>
     } else if (strncmp(command, "F", 1) == 0) {
         unsigned long led_id = strtoul(command + 1, NULL, 10);
         unsigned char led_id_char = (unsigned char)led_id;
         ManageKeyLeds(COMANDO_KEYLED_OFF, led_id_char);
         ESP_LOGI(TAG, "Desligar LED: %d", led_id_char);
 
+    //Ligar / Desligar todos os Leds da mesa
     } else if (strncmp(command, "A", 1) == 0) {
         int toggle = strtol(command + 1, NULL, 16);
         if (toggle) {
@@ -184,6 +189,7 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
             ESP_LOGI(TAG, "Turn ALL LEDs ON");
         }
 
+    //Handshake, retorna uma resposta e salva o cliente no escopo global
     } else if (strncmp(command, "HI", 2) == 0) {
         const char *response = "4S - Esp32 Mago Switcher :";
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
@@ -199,6 +205,7 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
     }
 }
 
+//Indica que um botão foi pressionado na rede
 void udp_send_buttonDown(unsigned char buttonId) {
     if (!g_client_addr_initialized || g_sock < 0) {
         ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
@@ -217,6 +224,7 @@ void udp_send_buttonDown(unsigned char buttonId) {
     }
 }
 
+//Indica que um botão foi solto na rede
 void udp_send_buttonUp(unsigned char buttonId) {
     if (!g_client_addr_initialized || g_sock < 0) {
         ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
@@ -235,6 +243,7 @@ void udp_send_buttonUp(unsigned char buttonId) {
     }
 }
 
+//Função para imprimir o ip
 void log_ip_address(esp_netif_t *netif) {
     esp_netif_ip_info_t ip_info;
     if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {

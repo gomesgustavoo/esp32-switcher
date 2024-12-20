@@ -628,46 +628,6 @@ void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 			}				
 		}
 	}
-	
-	
-	//aplica off no registro de piscada
-	/*
-	if ((Cmd_On_or_Off_or_Blink == CMD_KEYLED_OFF) || (Cmd_On_or_Off_or_Blink == CMD_KEYLED_ON))
-	{
-		
-		if (KeyIndex == ALL_LEDS)
-		{
-			for (PosPort = 0; PosPort < (7+5+5+5); PosPort++) // Preenche StatusOfKeyBoardLeds[x][1]
-			{
-				StatusOfKeyBoardLeds[PosPort][1] = 0xFF;
-			}
-
-		}
-		else {
-
-			PortIndex = GetPortIndex_OfKey(KeyIndex);
-			StatusOfKeyBoardLeds[PortIndex][1] = (StatusOfKeyBoardLeds[PortIndex][1]) | ~(GetByteMask_OfKey(KeyIndex));
-		}
-		
-	} 
-	else if (Cmd_On_or_Off_or_Blink == CMD_KEYLED_BLINK)
-	{
-		
-		if (KeyIndex == ALL_LEDS)
-		{
-			for (PosPort = 0; PosPort < (7+5+5+5); PosPort++) // Preenche StatusOfKeyBoardLeds[x][1]
-			{
-				StatusOfKeyBoardLeds[PosPort][1] = 0x00;
-			}
-	
-		}
-		else {
-
-			PortIndex = GetPortIndex_OfKey(KeyIndex);
-			StatusOfKeyBoardLeds[PortIndex][1] = (StatusOfKeyBoardLeds[PortIndex][1]) & (GetByteMask_OfKey(KeyIndex));
-		}	
-	}
-*/
 }
 
 void RotacionaLedsDePCAEnderecado(unsigned char EnderecoPCA)
