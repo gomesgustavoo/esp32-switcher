@@ -134,7 +134,7 @@ void app_main(void)
 		ThreadReadKey_SemInt();
 
 		//Delay para seguir o funcionamento correto do código
-		vTaskDelay(pdMS_TO_TICKS(120));
+		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 }
 
