@@ -26,6 +26,7 @@ Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_system.h"
 
 unsigned char comando, dado1, dado2;
 unsigned char AuxVarToBlinkBanks[7+5+5+5];
@@ -943,7 +944,6 @@ void RunTestMode(void)
 		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], 0xFF); //Configura como entrada		
 		//Efetua a leitura do banco
 		leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[2]),&bufferLeituraPCAParaMenuDoTeste);
-		printf("Debug leu o banco %u\n", bufferLeituraPCAParaMenuDoTeste);
 		
 		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], TempPort0);
 		if (bufferLeituraPCAParaMenuDoTeste == 0xF8)
@@ -981,11 +981,12 @@ void RunTestMode(void)
 						{
 							printf("Saindo do modo teste de teclas\n");
 							bufferLeituraPCAParaMenuDoTeste = 0xFF;
-							RunKeyLedsOneTime();
+							esp_restart();
 							ExitKeyPressedWhenLow = 0;
 						} 
 				}
 			}
+			
 		}
 }
 

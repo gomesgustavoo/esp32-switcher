@@ -164,8 +164,7 @@ void readkey_task(void *pvParameters) {
 	printf("Task de Varredura started on CPU %d\n", xPortGetCoreID());
 	while (1) {
 		ThreadReadKey_SemInt();
-		//debug
-		print_task_stats();
+
 		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 }
