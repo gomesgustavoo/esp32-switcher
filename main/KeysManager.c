@@ -26,6 +26,7 @@ Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_system.h"
 
 unsigned char comando, dado1, dado2;
 unsigned char AuxVarToBlinkBanks[7+5+5+5];
@@ -925,54 +926,24 @@ void AcendeAsTeclasImpares(void)
 }
 void RunTestMode(void)
 {
-	//PARA VERSAO 40 TECLAS LAYOUT ANTIGO
-	//Entra na rotina de testes ao inicar mantendo as teclas 6, 23 e 40 apertadas
-	//tecla 1: acende todos
-	//tecla 2: acende IMPAR
-	//tecla 3: acende PAR
-	//tecla 4 teste de teclas
-	// apertando teclas 1 e 40 simultaneamente sai do modo de teste de teclas
-	//tecla 5 Sai do modo de teste
-
-	//PARA VERSAO 56 TECLAS LAYOUT NOVO
-	//Entra na rotina de testes ao inicar mantendo as teclas 33, 34 e 35 apertadas
-	//tecla 17: acende todos (ok)
-	//tecla 18: apaga todos (ok)
-	//tecla 19: acende IMPAR (ok)
-	//tecla 20: acende PAR (ok)
-	//tecla 21 teste de teclas
-	// apertando teclas 47 e 48 simultaneamente sai do modo de teste de teclas (ok)
-	//tecla 21 Sai do modo de teste (ok)
-	
-
 	
 	unsigned char bufferLeituraPCAParaMenuDoTeste;
 	unsigned char bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[(7+5+5+5)];
 	unsigned char cntBank;
 	unsigned char TempPort0;
 	unsigned char ExitKeyPressedWhenLow;
-	//unsigned char bufferToCheckEncoder[3];
-	
-	
-	// indica entrada no modo de teste
-	//RunKeyLedsOneTime();
-	//brutalWatchdog = 0; //Feed the dog.	
-	//RunKeyLedsOneTime();
-	//brutalWatchdog = 0; //Feed the dog.	
 	
 	TempPort0 = 0xFF;
-	
 	ExitKeyPressedWhenLow = 1;
 	
 
 	//ESP Loop responsável pelo menu de escolha de testes no modo de testes, le o banco {x} de input do PCA9506
-	while (1)
+	while (ExitKeyPressedWhenLow)
 	{		
 		//Configura o banco 2 como entrada
 		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], 0xFF); //Configura como entrada		
 		//Efetua a leitura do banco
 		leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[2]),&bufferLeituraPCAParaMenuDoTeste);
-		printf("Debug leu o banco %u\n", bufferLeituraPCAParaMenuDoTeste);
 		
 		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], TempPort0);
 		if (bufferLeituraPCAParaMenuDoTeste == 0xF8)
@@ -1005,62 +976,17 @@ void RunTestMode(void)
 
 			TempPort0 = 0xFF;
 
-			while (ExitKeyPressedWhenLow) {
-				//etapa 1 le as teclas para efetuar o teste
-						for (cntBank = 0; cntBank < 7; cntBank++)
-						{
-							if (cntBank <= 4)
-							{
-								escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[cntBank], 0xFF); //Configura como entrada
-
-								//efetua leitura das portas
-								leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[cntBank]),&bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank]);
-								printf("Configurou como entrada e fez leitura do banco: %d\n", cntBank);
-							}
-							else if (cntBank == 5)//|| (cntBank == 6))
-							{
-								lePCA8575RegistroUnico(ENDERECO_PCA8575D_MM1300, &bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[5]); ////reg 6 pega automatico
-								printf("Fez a leitura do pca8575\n");
-							}
-						}
-						printf("Chegou na etapa 2\n");
-						//etapa 2 ve se alguma tecla foi apertada e acende algum led						
+			while (ExitKeyPressedWhenLow) {					
 						if (bufferLeituraPCAParaMenuDoTeste == 0xFC) // apertando teclas de saida do modo teste de tecla
 						{
 							printf("Saindo do modo teste de teclas\n");
 							bufferLeituraPCAParaMenuDoTeste = 0xFF;
-							RunKeyLedsOneTime();
+							esp_restart();
 							ExitKeyPressedWhenLow = 0;
 						} 
-						for (cntBank = 0; cntBank < 7; cntBank++)
-						{
-							if ((bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank]) != 0xFF) // alguma tecla foi apertada
-							{
-							printf("Alguma tecla foi apertada");
-								if (cntBank == 0)
-								{
-									escreveRegistro(ENDERECO_PCA_2_MM1300, output_port_register_banks[cntBank + 1], (bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank])); 
-								}
-								else if (cntBank == 1){
-									escreveRegistro(ENDERECO_PCA_2_MM1300, output_port_register_banks[cntBank + 1], (bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank])); 
-								}
-								else if (cntBank == 2){
-									escreveRegistro(ENDERECO_PCA_2_MM1300, output_port_register_banks[cntBank + 1], (bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank])); 
-								}
-								else if (cntBank == 3){
-									escreveRegistro(ENDERECO_PCA_2_MM1300, output_port_register_banks[cntBank + 1], (bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank])); 
-								}
-								else if (cntBank == 4){
-									escreveRegistro(ENDERECO_PCA_2_MM1300, output_port_register_banks[cntBank - 1], (bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank]));									
-								}
-								else if (cntBank == 5){
-									escreve_2bytes_PCA8575(0x21, (bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[cntBank - 4]));
-								}
-							}
-						}
-				vTaskDelay(pdMS_TO_TICKS(100));
 				}
 			}
+			
 		}
 }
 
