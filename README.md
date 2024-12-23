@@ -1,3 +1,9 @@
+# Sobre
+Repositório do projeto Mesa switcher de sinais, implementação da Mago Switcher da 4S com o microcontrolador Espressif ESP-32, o projeto espera como hardware a placa MM-1300 desenvolvida pela 4S, com o objetivo de enviar os comandos pela rede ao invés do protocolo USB como utilizado pelas mesas antecessoras, portanto em paralelo com a verificação dos botões, o ESP cria um UDP socket na porta 5000, onde envia teclas e recebe comandos.
+
+# Desenvolvimento
+O projeto foi escrito por mim, Gustavo com grande ajuda de colegas de trabalho sêniors que haviam desenvolvido mesas anteriores, fui designado para o projeto por demonstrar interesse grande no ESP32 e durante o projeto consegui extrair muito da capacidade total desse carinha, com a ajuda do freeRTOS separei em tasks e organizei os 2 núcleos físicos do ESP de modo que atingisse o máximo do desempenho
+
 # ToDo / Bug hunting
 - [ ] Suprimir os warnings do clangd
 
