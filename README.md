@@ -22,7 +22,7 @@ Já os arquivos de código fonte, alguns precisaram ser removidos para garantir 
 - KeysManager.c
 - udp_server.c
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 # Comportamento na rede / API
 *A mesa executa funções ao receber um dos seguintes comandos*
@@ -89,15 +89,13 @@ Já os arquivos de código fonte, alguns precisaram ser removidos para garantir 
 `process_command(&cmd, sock);
 - Processamento de comandos, os dados recebidos são armazenados na estrutura udp_command_t, e o comando é encaminhado para ser processado.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 # Endereçamento i2c
 Ambos os expansores são controlados por i2c portanto precisam assumir um endereço, são eles:
 - PCA9506DDG -> 0x22 
 - PCA8575D -> 0x21
 O endereço é definido pelos pinos A0, A1 e A2 em ambos os PCAs, no projeto [[Esp32 -> 4S-M1]] os endereços são os acima.
-
-# Auto-incremento
 
 
 # Endereço dos registradores
@@ -135,7 +133,7 @@ ambos os PCAs possuem formas diferentes de controlar os registradores
 - A leitura ou escrita ocorrem em uma única operação de 2 bytes, cada byde contem o estado de 8 pinos.
 - Escrever nesses bytes define o estado do GPIO, bit alto(1) o pino funciona como uma entrada e bit baixo(0) como saída
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 # SDKCONFIG
 ## Essenciais
