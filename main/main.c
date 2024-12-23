@@ -26,6 +26,7 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_err.h"
+#include "esp_timer.h"
 #include "udp_server.h"
 
 
@@ -107,6 +108,7 @@ void app_main(void)
 	//Inicializa o StatusofKeyboardLeds
 	inicializaStatusOfKeyBoardLeds();		
 
+	/*
 	//ESP rotina de testes
 	leRegistro(0x22, (input_port_register_bank[0] | 0x80),  &bufferLeituraPCA1[0]);
 	//Entra na condicional caso pressione e mantenha pressionado 3 teclas, equivalentes ao uchar 143
@@ -120,27 +122,13 @@ void app_main(void)
 			}
 		}
 	}
-
+	*/
+	
 	//Create a task de varredura das teclas com afinidade no CPU 0
 	xTaskCreatePinnedToCore(readkey_task, "Loop de Varredura", 2048, NULL, configMAX_PRIORITIES - 1, NULL, 0);
 
 	// Create UDP server task on CPU1
     xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, configMAX_PRIORITIES - 2, NULL, 1);
-
-/*
-	//Loop principal da aplicação
-	while (1)
-	{
-		//Faz a varredura das teclas e envia ao udp socket o botão que foi pressionado e solto no formato:
-		//D<id> sendo id(unsigned char) o botão que foi pressionado
-		//U<id> sendo id(unsigned char) o botão que foi solto
-		//ThreadReadKey_SemInt();
-		readkey_task();
-
-		//Delay para seguir o funcionamento correto do código
-		vTaskDelay(pdMS_TO_TICKS(20));
-	}
-*/
 }
 
 //ESP Rotina responsável por inicializar o Status of keyboard leds que vai ser utilizado no ThreadReadKey
@@ -165,7 +153,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(20));
+		precise_delay_us(20000);
 	}
 }
 
@@ -176,4 +164,11 @@ void udp_server_task(void *pvParameters) {
 	while (1){
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}   
+}
+
+void precise_delay_us(int64_t delay_us) {
+    int64_t start_time = esp_timer_get_time();
+    while ((esp_timer_get_time() - start_time) < delay_us) {
+       
+    }
 }

@@ -18,6 +18,7 @@ Descricao:	Esqueletos das funções do projeto Teclado Mago 56 teclas com expans
 
 *****************************************************************************/
 
+#include <stdint.h>
 extern unsigned char AuxVarToShowVersionOfHardwareBoard;
 
 //KeysManager.c
@@ -47,7 +48,7 @@ void app_main(void);
 void inicializaStatusOfKeyBoardLeds(void);
 void udp_server_task(void *pvParameters);
 void readkey_task(void *pvParameters);
-void print_task_stats(void);
+void precise_delay_us(int64_t dalay);
 
 /*
 //usbcomm.c
