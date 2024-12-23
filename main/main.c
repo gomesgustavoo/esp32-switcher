@@ -89,7 +89,7 @@ void app_main(void)
 	************************************************************************************/
 	//ESP Rotina de inicialização dos PCAs alterada para o funcionamento especifico no esp
 	inicializaPCAs();
-	vTaskDelay(pdMS_TO_TICKS(200));
+	vTaskDelay(pdMS_TO_TICKS(60));
 	
 	//Inicializa vertorzao de leitura de teclas
 	for (cntTmp = 0; cntTmp < 5; cntTmp++)
