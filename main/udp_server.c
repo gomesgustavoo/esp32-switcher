@@ -198,6 +198,17 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
         g_client_addr = *source_addr;
         g_client_addr_initialized = true;
 
+    //Retorna o endereçõ de ip e outros dados ao cliente
+    } else if(strncmp(command, "IP", 2) == 0) {
+        // Responder com os dados do IP
+        esp_netif_ip_info_t ip_info;
+        if (esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("ETH_DEF"), &ip_info) == ESP_OK) {
+            char response[128];
+            snprintf(response, sizeof(response), 
+                     "IP Address: " IPSTR "\nNetmask: " IPSTR "\nGateway: " IPSTR,
+                     IP2STR(&ip_info.ip), IP2STR(&ip_info.netmask), IP2STR(&ip_info.gw));
+            sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+            ESP_LOGI(TAG, "Enviado IP info: %s", response); }
     } else {
         ESP_LOGW(TAG, "Comando não reconhecido: '%s'", command);
     }
