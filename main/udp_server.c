@@ -160,34 +160,34 @@ void process_command(const udp_command_t *cmd, int sock) {
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
-    //Ligar Led específico, O<id>
+    // Ligar Led específico, O<id>
     if (strncmp(command, "O", 1) == 0) {
         unsigned long led_id = strtoul(command + 1, NULL, 10);
         unsigned char led_id_char = (unsigned char)led_id;
         ManageKeyLeds(COMANDO_KEYLED_ON, led_id_char);
         ESP_LOGI(TAG, "Ligar Led: %u", led_id_char);
 
-    //Desligar Led específico F<id>
+    // Desligar Led específico F<id>
     } else if (strncmp(command, "F", 1) == 0) {
         unsigned long led_id = strtoul(command + 1, NULL, 10);
         unsigned char led_id_char = (unsigned char)led_id;
         ManageKeyLeds(COMANDO_KEYLED_OFF, led_id_char);
         ESP_LOGI(TAG, "Desligar LED: %d", led_id_char);
 
-    //Ligar / Desligar todos os Leds da mesa
+    // Ligar / Desligar todos os Leds da mesa
     } else if (strncmp(command, "A", 1) == 0) {
         int toggle = strtol(command + 1, NULL, 16);
         if (toggle) {
             const char *response = "Reiniciando o estado dos leds, ALL OFF ";
             sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-            inicializaStatusOfKeyBoardLeds();	
+            inicializaStatusOfKeyBoardLeds();    
             ESP_LOGI(TAG, "ALL LEDS OFF");
         } else {
             ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
             ESP_LOGI(TAG, "Turn ALL LEDs ON");
         }
 
-    //Handshake, retorna uma resposta e salva o cliente no escopo global
+    // Handshake, retorna uma resposta e salva o cliente no escopo global
     } else if (strncmp(command, "HI", 2) == 0) {
         const char *response = "4S - Esp32 Mago Switcher :";
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
@@ -198,9 +198,8 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
         g_client_addr = *source_addr;
         g_client_addr_initialized = true;
 
-    //Retorna o endereçõ de ip e outros dados ao cliente
-    } else if(strncmp(command, "IP", 2) == 0) {
-        // Responder com os dados do IP
+    // Retorna o endereço de IP e outros dados ao cliente
+    } else if (strncmp(command, "IP", 2) == 0) {
         esp_netif_ip_info_t ip_info;
         if (esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("ETH_DEF"), &ip_info) == ESP_OK) {
             char response[128];
@@ -208,7 +207,23 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
                      "IP Address: " IPSTR "\nNetmask: " IPSTR "\nGateway: " IPSTR,
                      IP2STR(&ip_info.ip), IP2STR(&ip_info.netmask), IP2STR(&ip_info.gw));
             sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-            ESP_LOGI(TAG, "Enviado IP info: %s", response); }
+            ESP_LOGI(TAG, "Enviado IP info: %s", response);
+        } else {
+            const char *error_response = "Erro ao obter o IP";
+            sendto(sock, error_response, strlen(error_response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+            ESP_LOGE(TAG, "Erro ao obter informações de IP");
+        }
+
+    // Reboot do ESP32
+    } else if (strncmp(command, "REBOOT", 6) == 0) {
+        const char *response = "ESP32 está reiniciando...\n";
+        sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+        ESP_LOGI(TAG, "Reboot solicitado pelo cliente: %s:%d", 
+                 inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
+        precise_delay_us(100000);
+        esp_restart();
+
+    // Comando não reconhecido
     } else {
         ESP_LOGW(TAG, "Comando não reconhecido: '%s'", command);
     }
