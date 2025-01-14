@@ -4,8 +4,8 @@ Repositório do projeto Mesa switcher de sinais, implementação da Mago Switche
 # Desenvolvimento
 O projeto foi escrito por mim, Gustavo com grande ajuda de colegas de trabalho sêniors que haviam desenvolvido mesas anteriores, fui designado para o projeto por demonstrar interesse grande no ESP32 e durante o projeto consegui extrair muito da capacidade total desse carinha, com a ajuda do freeRTOS separei em tasks e organizei os 2 núcleos físicos do ESP de modo que atingisse o máximo do desempenho
 
-# ToDo / Bug hunting
-- [ ] Suprimir os warnings do clangd
+# Improves / Bug hunting
+- [ ] Melhorar o tempo de resposta do led
 
 # Organização de códigos fonte
 *arquivos headers.h*
