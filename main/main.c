@@ -153,7 +153,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		precise_delay_us(16000);
+		vTaskDelay(pdMS_TO_TICKS(16));
 	}
 }
 
@@ -164,11 +164,4 @@ void udp_server_task(void *pvParameters) {
 	while (1){
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}   
-}
-
-void precise_delay_us(int64_t delay_us) {
-    int64_t start_time = esp_timer_get_time();
-    while ((esp_timer_get_time() - start_time) < delay_us) {
-       
-    }
 }

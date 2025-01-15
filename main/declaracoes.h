@@ -48,7 +48,6 @@ void app_main(void);
 void inicializaStatusOfKeyBoardLeds(void);
 void udp_server_task(void *pvParameters);
 void readkey_task(void *pvParameters);
-void precise_delay_us(int64_t dalay);
 
 /*
 //usbcomm.c

@@ -220,7 +220,6 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
         ESP_LOGI(TAG, "Reboot solicitado pelo cliente: %s:%d", 
                  inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
-        precise_delay_us(100000);
         esp_restart();
 
     // Comando não reconhecido
