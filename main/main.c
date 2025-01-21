@@ -128,7 +128,7 @@ void app_main(void)
 	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 0);
 
 	// Create UDP server task on CPU1
-    xTaskCreatePinnedToCore(start_udp_server, "UDP Server Task", 4096, NULL, configMAX_PRIORITIES - 2, NULL, 1);
+    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, configMAX_PRIORITIES - 2, NULL, 1);
 }
 
 //ESP Rotina responsável por inicializar o Status of keyboard leds que vai ser utilizado no ThreadReadKey
@@ -153,12 +153,11 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(16));
+		vTaskDelay(pdMS_TO_TICKS(8));
 	}
 }
 
 // Inicia o servidor udp na porta 500
-/*
 void udp_server_task(void *pvParameters) {
 	printf("UDP Server Task started on CPU %d\n", xPortGetCoreID());
 	start_udp_server(); 
@@ -166,4 +165,3 @@ void udp_server_task(void *pvParameters) {
 		vTaskDelay(pdMS_TO_TICKS(500));
 	}   
 }
-*/
