@@ -118,11 +118,16 @@ esp_err_t start_udp_server(void) {
         close(sock);
         return ESP_FAIL;
     }
-
     ESP_LOGI(TAG, "UDP server listening on port %d", PORT);
+    // Configurar o socket para não bloquear
+    int flags = fcntl(sock, F_GETFL, 0);
+    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
+    int buff_size = 8192;
+    setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
 
     // Listen for incoming data
-    char rx_buffer[8];
+    char rx_buffer[32];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
 
@@ -130,22 +135,32 @@ esp_err_t start_udp_server(void) {
         int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,
                            (struct sockaddr *)&source_addr, &addr_len);
 
-        if (len < 0) {
-            ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
-            break;
+         if (len < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // Nenhum dado disponível, aguarde um pouco antes de tentar novamente
+                vTaskDelay(pdMS_TO_TICKS(10));
+                continue;
+            } else {
+                ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
+                break;
+            }
         }
 
         rx_buffer[len] = '\0';  // Null-terminate received data
-        ESP_LOGI(TAG, "Received %d bytes from %s:%d: '%s'", len,
-                 inet_ntoa(source_addr.sin_addr), ntohs(source_addr.sin_port), rx_buffer);
-
-        // Processar o comando recebido
+        //ESP_LOGI(TAG, "Received %d bytes from %s:%d: '%s'", len,ss
+                 //inet_ntoa(source_addr.sin_addr), ntohs(source_addr.sin_port), rx_buffer);
         udp_command_t cmd;
+
+        // Otimização para copiar apenas o necessário
+        size_t rx_length = strnlen(rx_buffer, MAX_BUFFER_SIZE - 1);
+        memcpy(cmd.command, rx_buffer, rx_length);
+        cmd.command[rx_length] = '\0';
+
+        // Atribuir o endereço
         cmd.source_addr = source_addr;
-        strncpy(cmd.command, rx_buffer, MAX_BUFFER_SIZE - 1);
-        cmd.command[MAX_BUFFER_SIZE - 1] = '\0';
 
         process_command(&cmd, sock);
+        //vTaskDelay(8);
     }
     // Cleanup
     close(sock);
@@ -161,43 +176,38 @@ void process_command(const udp_command_t *cmd, int sock) {
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
     // Ligar Led específico, O<id>
-    if (command[0] == 'F' && isdigit((unsigned char)command[1])) {
-        unsigned char led_id = (unsigned char)atoi(command + 1);
-        ManageKeyLeds(COMANDO_KEYLED_OFF, led_id);
-
-    } else if (command[0] == 'O' && isdigit((unsigned char)command[1])) {
-        unsigned char led_id = (unsigned char)atoi(command + 1);
-        ManageKeyLeds(COMANDO_KEYLED_ON, led_id);
-
+    if ((command[0] == 'F' || command[0] == 'O') && command[1] != '\0') {
+    // Tenta converter o número após 'F' ou 'O'
+        char *end;
+        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 10);
+        if (*end == '\0') {  // Verifica se a conversão foi bem-sucedida
+            int action = (command[0] == 'F') ? COMANDO_KEYLED_OFF : COMANDO_KEYLED_ON;
+            ManageKeyLeds(action, led_id);
+        }
     // Ligar / Desligar todos os Leds da mesa
-    } else if (strncmp(command, "A", 1) == 0) {
+    } else if (command[0] == 'A') {
         int toggle = strtol(command + 1, NULL, 16);
         if (toggle) {
-            //const char *response = "Reiniciando o estado dos leds, ALL OFF ";
-            //sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-            inicializaStatusOfKeyBoardLeds();    
-            //ESP_LOGI(TAG, "ALL LEDS OFF");
+            inicializaStatusOfKeyBoardLeds();
         } else {
             ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
-            //ESP_LOGI(TAG, "Turn ALL LEDs ON");
         }
 
     // Handshake, retorna uma resposta e salva o cliente no escopo global
-    } else if (strncmp(command, "HI", 2) == 0) {
+    } else if (command[0] == 'H' && command[1] == 'I') {
         const char *response = "4S - Esp32 Mago Switcher :";
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-        ESP_LOGI(TAG, "Handshake enviado para %s:%d", 
-                 inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
-        // Salva o endereço do cliente em variáveis globais
+        ESP_LOGI(TAG, "Handshake enviado para %s:%d", inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
         g_sock = sock;
         g_client_addr = *source_addr;
         g_client_addr_initialized = true;
-
-    // Retorna o endereço de IP e outros dados ao cliente
-    } else if (strncmp(command, "IP", 2) == 0) {
+    }
+}
+    /*
+    else if (strncmp(command, "IP", 2) == 0) {
         esp_netif_ip_info_t ip_info;
         if (esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("ETH_DEF"), &ip_info) == ESP_OK) {
-            char response[128];
+            char response[80];
             snprintf(response, sizeof(response), 
                      "IP Address: " IPSTR "\nNetmask: " IPSTR "\nGateway: " IPSTR,
                      IP2STR(&ip_info.ip), IP2STR(&ip_info.netmask), IP2STR(&ip_info.gw));
@@ -220,6 +230,6 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
     // Comando não reconhecido
     } else {
         ESP_LOGW(TAG, "Comando não reconhecido: '%s'", command);
-    }
-}
+    }*/
+
 

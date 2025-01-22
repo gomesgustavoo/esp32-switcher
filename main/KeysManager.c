@@ -1220,12 +1220,19 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 			{
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
-					char response[5];
-    				snprintf(response, sizeof(response), "D%u", ArrayIndicaTecla[cntBank][cntTmp]);
-    				sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
-					//ManageKeyLeds(COMANDO_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
+					char response[5]; // Buffer fixo para a resposta
+					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
+					// Preenche diretamente a resposta
+					response[0] = 'D';
+					response[1] = (tecla_id / 100) + '0';  // Primeiro dígito (centena)
+					response[2] = ((tecla_id / 10) % 10) + '0';  // Segundo dígito (dezena)
+					response[3] = (tecla_id % 10) + '0';  // Terceiro dígito (unidade)
+					response[4] = '\0';  // Finaliza a string
+					// Envia a resposta
+					sendto(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+
+					// Atualiza o buffer
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
-					//printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
 				}
 				else 
 				{

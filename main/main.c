@@ -128,7 +128,7 @@ void app_main(void)
 	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 0);
 
 	// Create UDP server task on CPU1
-    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, configMAX_PRIORITIES - 2, NULL, 1);
+    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 8192, NULL, configMAX_PRIORITIES - 2, NULL, 1);
 }
 
 //ESP Rotina responsável por inicializar o Status of keyboard leds que vai ser utilizado no ThreadReadKey
