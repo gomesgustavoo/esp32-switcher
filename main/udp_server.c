@@ -12,14 +12,14 @@
 static const char *TAG = "ETHERNET";
 
 #define PORT 5000  // Port to listen on
-#define MAX_BUFFER_SIZE 256
+#define MAX_BUFFER_SIZE 6
 
 static esp_netif_t *eth_netif = NULL;
 
-// Endereço do cliente global
-static int g_sock =-1;
-static struct sockaddr_in g_client_addr;
-static bool g_client_addr_initialized = false;
+int g_sock =-1;
+struct sockaddr_in g_client_addr;
+bool g_client_addr_initialized = false;
+
 
 // Function to initialize Ethernet
 esp_err_t configure_ethernet(void) {
@@ -122,7 +122,7 @@ esp_err_t start_udp_server(void) {
     ESP_LOGI(TAG, "UDP server listening on port %d", PORT);
 
     // Listen for incoming data
-    char rx_buffer[128];
+    char rx_buffer[8];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
 
@@ -154,37 +154,32 @@ esp_err_t start_udp_server(void) {
 }
 
 void process_command(const udp_command_t *cmd, int sock) {
-    ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
+    //ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
     parse_and_execute(cmd->command, &cmd->source_addr, sock);
 }
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
     // Ligar Led específico, O<id>
-    if (strncmp(command, "O", 1) == 0) {
-        unsigned long led_id = strtoul(command + 1, NULL, 10);
-        unsigned char led_id_char = (unsigned char)led_id;
-        ManageKeyLeds(COMANDO_KEYLED_ON, led_id_char);
-        ESP_LOGI(TAG, "Ligar Led: %u", led_id_char);
+    if (command[0] == 'F' && isdigit((unsigned char)command[1])) {
+        unsigned char led_id = (unsigned char)atoi(command + 1);
+        ManageKeyLeds(COMANDO_KEYLED_OFF, led_id);
 
-    // Desligar Led específico F<id>
-    } else if (strncmp(command, "F", 1) == 0) {
-        unsigned long led_id = strtoul(command + 1, NULL, 10);
-        unsigned char led_id_char = (unsigned char)led_id;
-        ManageKeyLeds(COMANDO_KEYLED_OFF, led_id_char);
-        ESP_LOGI(TAG, "Desligar LED: %d", led_id_char);
+    } else if (command[0] == 'O' && isdigit((unsigned char)command[1])) {
+        unsigned char led_id = (unsigned char)atoi(command + 1);
+        ManageKeyLeds(COMANDO_KEYLED_ON, led_id);
 
     // Ligar / Desligar todos os Leds da mesa
     } else if (strncmp(command, "A", 1) == 0) {
         int toggle = strtol(command + 1, NULL, 16);
         if (toggle) {
-            const char *response = "Reiniciando o estado dos leds, ALL OFF ";
-            sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+            //const char *response = "Reiniciando o estado dos leds, ALL OFF ";
+            //sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
             inicializaStatusOfKeyBoardLeds();    
-            ESP_LOGI(TAG, "ALL LEDS OFF");
+            //ESP_LOGI(TAG, "ALL LEDS OFF");
         } else {
             ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
-            ESP_LOGI(TAG, "Turn ALL LEDs ON");
+            //ESP_LOGI(TAG, "Turn ALL LEDs ON");
         }
 
     // Handshake, retorna uma resposta e salva o cliente no escopo global
@@ -220,7 +215,6 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
         ESP_LOGI(TAG, "Reboot solicitado pelo cliente: %s:%d", 
                  inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
-        precise_delay_us(100000);
         esp_restart();
 
     // Comando não reconhecido
@@ -228,54 +222,4 @@ void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int
         ESP_LOGW(TAG, "Comando não reconhecido: '%s'", command);
     }
 }
-
-//Indica que um botão foi pressionado na rede
-void udp_send_buttonDown(unsigned char buttonId) {
-    if (!g_client_addr_initialized || g_sock < 0) {
-        ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
-        return;
-    }
-
-    char response[10];
-
-    snprintf(response, sizeof(response), "D%u", buttonId);
-
-    int err = sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
-    if (err < 0) {
-        ESP_LOGE(TAG, "Erro ao enviar botão pressionado: %s", strerror(errno));
-    } else {
-        ESP_LOGI(TAG, "Mensagem enviada: %s (Bytes enviados: %d)", response, err);
-    }
-}
-
-//Indica que um botão foi solto na rede
-void udp_send_buttonUp(unsigned char buttonId) {
-    if (!g_client_addr_initialized || g_sock < 0) {
-        ESP_LOGE(TAG, "Erro: Socket ou endereço do cliente não inicializado");
-        return;
-    }
-
-    char response[10];
-
-    snprintf(response, sizeof(response), "U%u", buttonId);
-
-    int err = sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
-    if (err < 0) {
-        ESP_LOGE(TAG, "Erro ao enviar botão pressionado: %s", strerror(errno));
-    } else {
-        ESP_LOGI(TAG, "Mensagem enviada: %s (Bytes enviados: %d)", response, err);
-    }
-}
-
-//Função para imprimir o ip
-void log_ip_address(esp_netif_t *netif) {
-    esp_netif_ip_info_t ip_info;
-    if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
-        ESP_LOGI(TAG, "IP Address: " IPSTR, IP2STR(&ip_info.ip));
-        ESP_LOGI(TAG, "Netmask: " IPSTR, IP2STR(&ip_info.netmask));
-        ESP_LOGI(TAG, "Gateway: " IPSTR, IP2STR(&ip_info.gw));
-    } else {
-        ESP_LOGE(TAG, "Failed to get IP address");
-        }
-    }
 
