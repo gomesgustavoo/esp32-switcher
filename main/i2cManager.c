@@ -1,6 +1,7 @@
 #include "declaracoes.h"			//Declaracoes p/ AFV801CS_v2.01
 #include "definicoes.h"				//Definicoes p/ AFV801CS_v2.01
 #include "registrosPCA9506.h"
+
 //Includes de bibliotecas que permitem o funcionamento correto do ESP, nativas do ESP-IDF
 #include "esp_log.h"
 #include "esp_err.h"
@@ -156,34 +157,6 @@ void inicializaPCAs(void)
     //ESP Rotina de inicialização de PCAs especifica para M1-56t
     inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
     printf("inicialização do primeiro PCA concluída, continuando a rotina \n");
-
-    //ESP por estar utilizando um PCA de menos pinos, sem registradores inicializar é necessário
-    //inicializaPCAs_Individualmente(0x21);
-    
-    /*Rotina de inicialização de PCAs original
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
-		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //inicializa base
-	{ 
-		inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
-	{ 
-		inicializaPCAs_Individualmente(ENDERECO_PCA_3_MM1200_A);
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) //se teclado expansão 2 presente
-	{
-		inicializaPCAs_Individualmente(ENDERECO_PCA_3_MM1200_B); 
-	}
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) //se teclado expansão 3 presente
-	{
-		inicializaPCAs_Individualmente(ENDERECO_PCA_3_MM1200_C);
-	}
-    */
-	
 }
 
 void leRegistro(unsigned char endereco, unsigned char reg, unsigned char *buf) {
@@ -308,11 +281,7 @@ void leRegistroUnico(unsigned char endereco, unsigned char reg, unsigned char * 
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
         ESP_LOGE("I2C", "Erro ao executar a Leitura de Registro Unico no PCA9506");
-    }/*ESP Debug
-    else {
-        ESP_LOGI("I2C", "Sucesso ao ler registro único no PCA9506");
     }
-    */
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);
 }
@@ -335,11 +304,7 @@ void escreveRegistro(unsigned char endereco, unsigned char reg, unsigned char va
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
         ESP_LOGE("I2C", "Erro ao executar a Escrita de Registro no PCA9506");
-    }/*ESP Debug
-    else {
-        ESP_LOGI("I2C", "Sucesso ao escrever no PCA9506, reg: %u, valor: %u", reg, valor);
     }
-    */
     //Libera o buffer de comandos
     i2c_cmd_link_delete(cmd);
 }
@@ -377,11 +342,9 @@ void escreve_2bytes_PCA8575(unsigned char endereco, unsigned char valor)
 
     data = (valor << 8 );
     data = data | valor;
-    //printf("debug, data: %d, valor: %u\n", data, valor);
 
     uint8_t low_byte = data & 0xFF;        // Byte menos significativo (P0 a P7)
     uint8_t high_byte = (data >> 8) & 0xFF; // Byte mais significativo (P8 a P15)
-    //printf("debug, low_byte = %d e high_byte = %d", low_byte, high_byte);
 
     //Inicio da comunicação i2c
     i2c_master_start(cmd);
@@ -460,15 +423,6 @@ void escreve5RegistrosBurst(unsigned char endereco, unsigned char reg, unsigned 
     if (status != ESP_OK) {
         printf("ERRO: %s\n", esp_err_to_name(status));
     }
-    /*
-    else{
-        printf("Sucesso ao escrever os 5 valores: %u, %u, %u, %u, %u\n",valor0,
-                                                                             valor1,
-                                                                             valor2,
-                                                                             valor3,
-                                                                             valor4);                                                                            
-    }
-    */
     //Libera o buffer
     i2c_cmd_link_delete(cmd);
 }

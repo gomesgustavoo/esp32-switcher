@@ -52,40 +52,6 @@ Descricao:	Definições gerais do projeto.
 #define BIT_7				0x80
 
 /********************************************
- Definições da comunicação USB
-*********************************************/
-/*
-#define	STX						0x08 //'S' 
-#define EOM						0xFD //' ' 
-#define	TAMANHO_BUFFER_USB		0x07
-#define TAMANHO_PACOTE_USB		0x07
-#define TAMANHO_PACOTE_RECEPCAO_USB 0x04
-#define CMD_CFG_TEMP_REF_USB	0x50
-
-#define USB_STATUS_AGUARDANDO	0x00
-#define USB_STATUS_RECEBENDO	0x01
-#define USB_STATUS_TRANSMITINDO	0x02
-
-#define CMD_WR_GPO_STATE		0x50
-#define CMD_WR_GPO_PULSE		0x51
-#define CMD_GPI_NOTIFY			0x52
-#define CMD_READ_GPI			0x53
-#define CMD_CONTROL_LED			0x54
-#define CMD_CHANGE_BAUD_RATE	0x55
-#define CMD_READ_FW             0x56
-#define CMD_READ_BAUD			0x57
-
-
-#define CMD_KEY_NOTIFY			0x71
-#define CMD_KEYLED_ON			0x73
-#define CMD_KEYLED_OFF			0x74
-#define CMD_KEYLED_BLINK		0x78
-#define CMD_RESET				0x75
-#define CMD_KEYLED_ON_RUN_MODE	0x76
-#define CMD_CHECKRESET			0x77
-*/
-
-/********************************************
  Definições da comunicação pela rede
 *********************************************/
 #define COMANDO_KEYLED_ON 0x73
@@ -335,66 +301,3 @@ Descricao:	Definições gerais do projeto.
 #define I2C_MASTER_SDA_IO 14        // Pino SDA do ESP32
 #define I2C_MASTER_FREQ_HZ 100000   // Frequência do I2C
 #define I2C_MASTER_NUM I2C_NUM_0   
-
-/*
-Alguns comandos para teste do usb
-Conectar a 9600
-
-Reset
-SS4u 
-
-RunKeys 
-SS4v  
-
-Acender todas
-SS5s~ 
-
-Apagar todas
-SS5t~ 
-
-Piscas todas
-SS5x~ 
-
-Acender 1
-SS5sA 
-
-Acender 2
-SS5sB 
-
-Acender 3
-SS5sC 
-
-Acender 56
-SS5s¨ 
-
-Apagar 56
-SS5t¨ 
-
-
-Acender 136
-SS5sø 
-
-Apagar 136
-SS5tø 
-
-Piscar 136
-SS5xø 
-
-SS5sÉ 
-
-
-Acender Algumas
-SS5sM SS5sQ SS5s¡ 
-
-Piscar Algumas
-SS5xM SS5xQ SS5x¡ 
-
-ReadFirwareVersion [0x56]
-SS4V 
-
-
-*/
-
-
-
-

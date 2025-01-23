@@ -11,8 +11,6 @@
 
 static const char *TAG = "ETHERNET";
 
-#define PORT 5000  // Port to listen on
-#define MAX_BUFFER_SIZE 6
 
 static esp_netif_t *eth_netif = NULL;
 
@@ -57,9 +55,9 @@ esp_err_t configure_ethernet(void) {
     esp32_mac_config.smi_gpio.mdio_num = GPIO_NUM_18; // MDIO pin
 
     eth_mac_config_t mac_config = {
-    .sw_reset_timeout_ms = 100,   // Default
-    .rx_task_stack_size = 4096,  // Default 
-    .rx_task_prio = 15,          // Default
+    .sw_reset_timeout_ms = 100,   // D
+    .rx_task_stack_size = 4096, 
+    .rx_task_prio = 15,          
     };
     esp_eth_mac_t *mac = esp_eth_mac_new_esp32(&esp32_mac_config, &mac_config);
 
@@ -127,17 +125,15 @@ esp_err_t start_udp_server(void) {
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
 
     // Listen for incoming data
-    char rx_buffer[32];
+    char rx_buffer[128];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
-
     while (1) {
         int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,
                            (struct sockaddr *)&source_addr, &addr_len);
 
          if (len < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                // Nenhum dado disponível, aguarde um pouco antes de tentar novamente
                 vTaskDelay(pdMS_TO_TICKS(10));
                 continue;
             } else {
@@ -147,20 +143,18 @@ esp_err_t start_udp_server(void) {
         }
 
         rx_buffer[len] = '\0';  // Null-terminate received data
-        //ESP_LOGI(TAG, "Received %d bytes from %s:%d: '%s'", len,ss
-                 //inet_ntoa(source_addr.sin_addr), ntohs(source_addr.sin_port), rx_buffer);
+        printf("debug buffer: %s \n", rx_buffer);
         udp_command_t cmd;
 
         // Otimização para copiar apenas o necessário
-        size_t rx_length = strnlen(rx_buffer, MAX_BUFFER_SIZE - 1);
-        memcpy(cmd.command, rx_buffer, rx_length);
-        cmd.command[rx_length] = '\0';
+        //size_t rx_length = strnlen(rx_buffer, MAX_BUFFER_SIZE - 1);
+        memcpy(cmd.command, rx_buffer, len);
+        cmd.command[len] = '\0';
 
         // Atribuir o endereço
         cmd.source_addr = source_addr;
 
         process_command(&cmd, sock);
-        //vTaskDelay(8);
     }
     // Cleanup
     close(sock);
@@ -174,7 +168,7 @@ void process_command(const udp_command_t *cmd, int sock) {
 }
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
-void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock) {
+void parse_and_execute(const char *command, const struct sockaddr_in *source_addr, int sock) {
     // Ligar Led específico, O<id>
     if ((command[0] == 'F' || command[0] == 'O') && command[1] != '\0') {
     // Tenta converter o número após 'F' ou 'O'

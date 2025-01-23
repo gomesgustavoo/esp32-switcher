@@ -30,9 +30,8 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "udp_server.h"
 
 
-unsigned char TesteCode = 143;
 unsigned char timerTick;
-unsigned int brutalWatchdog;
+
 extern unsigned char AuxVarToBlinkBanks[7+5+5+5];
 unsigned char AuxVarToShowIfEncoderAandBAreConnected;
 unsigned char AuxVarToShowVersionOfHardwareBoard;
@@ -58,6 +57,7 @@ void app_main(void)
 	 Confere se qual tipo de teclado está em operação
 	************************************************************************************/
 	//ESP Primeira sequencia de logs no monitor serial, ESP_OK quando encontra o PCA e ESP_FAIL quando não encontra
+	/*
 	AuxVarToShowVersionOfHardwareBoard = 0x00;
 	
 	if (CheckPcaDevice(ENDERECO_PCA_1))
@@ -84,7 +84,7 @@ void app_main(void)
 	{
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED;	
 	}
-
+	*/
 	/***********************************************************************************
 	inicializaPCAs
 	************************************************************************************/
@@ -153,7 +153,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(8));
+		vTaskDelay(pdMS_TO_TICKS(4));
 	}
 }
 

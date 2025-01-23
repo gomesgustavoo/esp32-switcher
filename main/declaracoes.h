@@ -38,50 +38,11 @@ void AcendeAsTeclasPares(void);
 void AcendeAsTeclasImpares(void);
 void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo);
 
-
-/*
-//main.c
-void lowVoltageDetected(void);
-void inicializaPlacaTecladoUSB(void);
-*/
 void app_main(void);
 void inicializaStatusOfKeyBoardLeds(void);
 void udp_server_task(void *pvParameters);
 void readkey_task(void *pvParameters);
-
-/*
-//usbcomm.c
-void inicializaUSB(void);
-void ThreadUSB(void);
-*/
-/*
-//timermanager.c
-void inicializaTimer(void);
-void timerManager(void);
-*/
-/*
-//fila de recepcao
-void RCQ_InitializeQueue(void);
-void RCQ_InsertNewCommand(unsigned char command, 
-						  unsigned char data1, 
-						  unsigned char data2);
-void RCQ_GetOldestCommand(unsigned char * rCommand, 
-						  unsigned char* rData1, 
-						  unsigned char* rData2);
-unsigned char RCQ_hasCommands(void);
-*/
-
-/*
-//fila de envio
-void SCQ_InitializeQueue(void);
-unsigned char SCQ_hasCommandsToSend(void);
-void SCQ_GetOldestCommand(unsigned char * command, unsigned char * data1 , unsigned char * data2);
-void SCQ_InsertNewCommand(	unsigned char command, 
-							unsigned char data1, 
-							unsigned char data2);
-*/
-							
-							
+			
 
 //Protótipos I2C
 void inicializaPCAs(void);
