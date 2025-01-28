@@ -18,6 +18,13 @@ int g_sock =-1;
 struct sockaddr_in g_client_addr;
 bool g_client_addr_initialized = false;
 
+//Teste de fila de comandos com notification para corrigir o problema do TAKE
+udp_command_t command_buffer[20];
+volatile int head = 0;
+volatile int tail = 0;
+
+TaskHandle_t processor_task_handle;
+static volatile bool processor_awake = false;
 
 // Function to initialize Ethernet
 esp_err_t configure_ethernet(void) {
@@ -128,6 +135,9 @@ esp_err_t start_udp_server(void) {
     char rx_buffer[128];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
+
+    xTaskCreatePinnedToCore(process_commands, "CommandProcessor", 4096, NULL, configMAX_PRIORITIES -3, &processor_task_handle, 1);
+
     while (1) {
         int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,
                            (struct sockaddr *)&source_addr, &addr_len);
@@ -143,7 +153,7 @@ esp_err_t start_udp_server(void) {
         }
 
         rx_buffer[len] = '\0';  // Null-terminate received data
-        printf("debug buffer: %s \n", rx_buffer);
+        printf("Debug rx_buffer: %s \n", rx_buffer);
         udp_command_t cmd;
 
         // Otimização para copiar apenas o necessário
@@ -154,39 +164,40 @@ esp_err_t start_udp_server(void) {
         // Atribuir o endereço
         cmd.source_addr = source_addr;
 
-        process_command(&cmd, sock);
+        enqueue_command(&cmd);
+        //process_command(&cmd, sock);
     }
     // Cleanup
     close(sock);
     ESP_LOGI(TAG, "UDP server stopped");
     return ESP_OK;
 }
-
+/*
 void process_command(const udp_command_t *cmd, int sock) {
     //ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
     parse_and_execute(cmd->command, &cmd->source_addr, sock);
 }
+*/
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
-void parse_and_execute(const char *command, const struct sockaddr_in *source_addr, int sock) {
-    // Ligar Led específico, O<id>
-    if ((command[0] == 'F' || command[0] == 'O') && command[1] != '\0') {
-    // Tenta converter o número após 'F' ou 'O'
+void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int sock) {
+    printf("Debug Parsing, %s\n", command);
+    // Verifica se o comando inicia com 'F' ou 'O'
+    if (command[0] == 'F' || command[0] == 'O') {
         char *end;
-        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 10);
-        if (*end == '\0') {  // Verifica se a conversão foi bem-sucedida
+        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 16);
+        printf("Debug led_id: %u \n", led_id);
+        if (*end == '\0' || *end == '\n' || *end == '\r') {
             int action = (command[0] == 'F') ? COMANDO_KEYLED_OFF : COMANDO_KEYLED_ON;
             ManageKeyLeds(action, led_id);
         }
     // Ligar / Desligar todos os Leds da mesa
     } else if (command[0] == 'A') {
-        int toggle = strtol(command + 1, NULL, 16);
-        if (toggle) {
+        if (command[1] == '0') {
             inicializaStatusOfKeyBoardLeds();
         } else {
             ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
         }
-
     // Handshake, retorna uma resposta e salva o cliente no escopo global
     } else if (command[0] == 'H' && command[1] == 'I') {
         const char *response = "4S - Esp32 Mago Switcher :";
@@ -195,6 +206,7 @@ void parse_and_execute(const char *command, const struct sockaddr_in *source_add
         g_sock = sock;
         g_client_addr = *source_addr;
         g_client_addr_initialized = true;
+        printf("Debug Handshake: %i", g_client_addr_initialized);
     }
 }
     /*
@@ -227,3 +239,38 @@ void parse_and_execute(const char *command, const struct sockaddr_in *source_add
     }*/
 
 
+void enqueue_command(const udp_command_t *cmd) {
+    int next_head = (head + 1) % 20;
+
+    if (next_head == tail) {
+        ESP_LOGW("BUFFER", "Buffer overflow, dropping command");
+    } else {
+        command_buffer[head] = *cmd;
+        head = next_head;
+
+        // Notifica apenas se necessário
+        if (!processor_awake) {
+            processor_awake = true;
+            xTaskNotifyGive(processor_task_handle);
+        }
+    }
+}
+
+void process_commands(void *pvParameters) {
+    udp_command_t cmd;
+
+    while (1) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        processor_awake = true;
+
+        while (head != tail) {
+            cmd = command_buffer[tail];
+            tail = (tail + 1) % 20;
+            printf("Debug process, cmd: %s \n", cmd.command);
+            parse_and_execute(cmd.command, &cmd.source_addr, g_sock);
+        }
+
+        processor_awake = false; 
+    }
+}

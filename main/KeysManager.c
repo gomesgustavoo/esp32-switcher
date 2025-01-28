@@ -557,6 +557,7 @@ unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
 void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 {
 	unsigned char PortIndex, PosPort;
+	printf("Debug ManageKey, cmd: %u, key: %u \n", comando, KeyIndex);
 
 	if (comando == COMANDO_KEYLED_ON)
 	{
@@ -923,8 +924,19 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 					response[2] = ((tecla_id / 10) % 10) + '0';  // Segundo dígito (dezena)
 					response[3] = (tecla_id % 10) + '0';  // Terceiro dígito (unidade)
 					response[4] = '\0';  // Finaliza a string
+					
+					/*
+					char response[4]; // Buffer fixo para a resposta
+					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
+					// Preenche a resposta no formato "D+Hex"
+					response[0] = 'D';
+					response[1] = (tecla_id >> 4) < 10 ? (tecla_id >> 4) + '0' : (tecla_id >> 4) - 10 + 'A';  // Digito mais significativo
+					response[2] = (tecla_id & 0x0F) < 10 ? (tecla_id & 0x0F) + '0' : (tecla_id & 0x0F) - 10 + 'A';  // Digito menos significativo
+					response[3] = '\0';  // Finaliza a string
+					*/
 					// Envia a resposta
-					sendto(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+					printf("Debug Varredura: %s\n", response);
+					sendto(g_sock, response, 5, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
 
 					// Atualiza o buffer
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;

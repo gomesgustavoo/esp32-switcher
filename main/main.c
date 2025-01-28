@@ -153,7 +153,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(4));
+		vTaskDelay(pdMS_TO_TICKS(3));
 	}
 }
 
