@@ -132,14 +132,15 @@ esp_err_t start_udp_server(void) {
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
 
     // Listen for incoming data
-    char rx_buffer[128];
+    char rx_buffer[256];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
+    g_sock = sock;
 
     xTaskCreatePinnedToCore(process_commands, "CommandProcessor", 4096, NULL, configMAX_PRIORITIES -3, &processor_task_handle, 1);
 
     while (1) {
-        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,
+        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, MSG_WAITALL,
                            (struct sockaddr *)&source_addr, &addr_len);
 
          if (len < 0) {
@@ -153,18 +154,29 @@ esp_err_t start_udp_server(void) {
         }
 
         rx_buffer[len] = '\0';  // Null-terminate received data
-        printf("Debug rx_buffer: %s \n", rx_buffer);
+        //printf("Debug rx_buffer: %s \n", rx_buffer);
         udp_command_t cmd;
 
         // Otimização para copiar apenas o necessário
         //size_t rx_length = strnlen(rx_buffer, MAX_BUFFER_SIZE - 1);
         memcpy(cmd.command, rx_buffer, len);
         cmd.command[len] = '\0';
-
         // Atribuir o endereço
         cmd.source_addr = source_addr;
 
+        if (cmd.command[0] == 'O' && cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
+            //printf("Debug Take ! ! ! ! ! ! !\n");
+            vTaskSuspendAll(); // Suspende escalonamento de todas as tasks
+            uint32_t start = xTaskGetTickCount();
+            while ((xTaskGetTickCount() - start) < pdMS_TO_TICKS(100)) {
+                // Aguarda bloqueando o escalonador
+            }
+            xTaskResumeAll(); // Retoma o escalonamento das tasks
+            enqueue_command(&cmd);
+            continue;
+        }
         enqueue_command(&cmd);
+        vTaskDelay(pdMS_TO_TICKS(4));
         //process_command(&cmd, sock);
     }
     // Cleanup
@@ -172,28 +184,28 @@ esp_err_t start_udp_server(void) {
     ESP_LOGI(TAG, "UDP server stopped");
     return ESP_OK;
 }
-/*
+
 void process_command(const udp_command_t *cmd, int sock) {
     //ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
     parse_and_execute(cmd->command, &cmd->source_addr, sock);
 }
-*/
+
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int sock) {
-    printf("Debug Parsing, %s\n", command);
+    //printf("Debug Parsing, %s\n", command);
     // Verifica se o comando inicia com 'F' ou 'O'
     if (command[0] == 'F' || command[0] == 'O') {
         char *end;
-        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 16);
-        printf("Debug led_id: %u \n", led_id);
+        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 10);
+        //printf("Debug led_id: %u \n", led_id);
         if (*end == '\0' || *end == '\n' || *end == '\r') {
             int action = (command[0] == 'F') ? COMANDO_KEYLED_OFF : COMANDO_KEYLED_ON;
             ManageKeyLeds(action, led_id);
         }
     // Ligar / Desligar todos os Leds da mesa
     } else if (command[0] == 'A') {
-        if (command[1] == '0') {
+        if (command[1] == '0' || command[1] == '1') {
             inicializaStatusOfKeyBoardLeds();
         } else {
             ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
@@ -203,10 +215,8 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
         const char *response = "4S - Esp32 Mago Switcher :";
         sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
         ESP_LOGI(TAG, "Handshake enviado para %s:%d", inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
-        g_sock = sock;
         g_client_addr = *source_addr;
         g_client_addr_initialized = true;
-        printf("Debug Handshake: %i", g_client_addr_initialized);
     }
 }
     /*
@@ -267,7 +277,7 @@ void process_commands(void *pvParameters) {
         while (head != tail) {
             cmd = command_buffer[tail];
             tail = (tail + 1) % 20;
-            printf("Debug process, cmd: %s \n", cmd.command);
+            //printf("Debug process, cmd: %s \n", cmd.command);
             parse_and_execute(cmd.command, &cmd.source_addr, g_sock);
         }
 
