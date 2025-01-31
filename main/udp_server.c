@@ -118,7 +118,7 @@ esp_err_t start_udp_server(void) {
         .sin_addr.s_addr = htonl(INADDR_ANY)
     };
 
-    int buff_size = 4096;
+    int buff_size = 8192;
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
 
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -173,6 +173,7 @@ esp_err_t start_udp_server(void) {
             }
         }
         enqueue_command(&cmd);
+        taskYIELD();
         //process_command(&cmd, sock);
     }
     // Cleanup
