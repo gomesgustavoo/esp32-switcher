@@ -19,7 +19,7 @@ struct sockaddr_in g_client_addr;
 bool g_client_addr_initialized = false;
 
 //Teste de fila de comandos com notification para corrigir o problema do TAKE
-udp_command_t command_buffer[20];
+udp_command_t command_buffer[30];
 volatile int head = 0;
 volatile int tail = 0;
 
@@ -118,6 +118,9 @@ esp_err_t start_udp_server(void) {
         .sin_addr.s_addr = htonl(INADDR_ANY)
     };
 
+    int buff_size = 4096;
+    setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
+
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         ESP_LOGE(TAG, "Socket bind failed: errno %d", errno);
         close(sock);
@@ -128,19 +131,16 @@ esp_err_t start_udp_server(void) {
     int flags = fcntl(sock, F_GETFL, 0);
     fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
-    int buff_size = 8192;
-    setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
-
     // Listen for incoming data
-    char rx_buffer[256];
+    char rx_buffer[512];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
     g_sock = sock;
 
-    xTaskCreatePinnedToCore(process_commands, "CommandProcessor", 4096, NULL, configMAX_PRIORITIES -3, &processor_task_handle, 1);
+    xTaskCreatePinnedToCore(process_commands, "CommandProcessor", 4096, NULL, configMAX_PRIORITIES - 2, &processor_task_handle, 1);
 
     while (1) {
-        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, MSG_WAITALL,
+        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,
                            (struct sockaddr *)&source_addr, &addr_len);
 
          if (len < 0) {
@@ -164,19 +164,15 @@ esp_err_t start_udp_server(void) {
         // Atribuir o endereço
         cmd.source_addr = source_addr;
 
-        if (cmd.command[0] == 'O' && cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
-            //printf("Debug Take ! ! ! ! ! ! !\n");
-            vTaskSuspendAll(); // Suspende escalonamento de todas as tasks
-            uint32_t start = xTaskGetTickCount();
-            while ((xTaskGetTickCount() - start) < pdMS_TO_TICKS(100)) {
-                // Aguarda bloqueando o escalonador
-            }
-            xTaskResumeAll(); // Retoma o escalonamento das tasks
-            enqueue_command(&cmd);
+        if (cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
+            if (cmd.command[0] == 'O') {
+            processor_awake = true;
             continue;
+            } else {
+            processor_awake = false;            
+            }
         }
         enqueue_command(&cmd);
-        vTaskDelay(pdMS_TO_TICKS(4));
         //process_command(&cmd, sock);
     }
     // Cleanup
@@ -250,7 +246,7 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
 
 
 void enqueue_command(const udp_command_t *cmd) {
-    int next_head = (head + 1) % 20;
+    int next_head = (head + 1) % 30;
 
     if (next_head == tail) {
         ESP_LOGW("BUFFER", "Buffer overflow, dropping command");
@@ -276,7 +272,7 @@ void process_commands(void *pvParameters) {
 
         while (head != tail) {
             cmd = command_buffer[tail];
-            tail = (tail + 1) % 20;
+            tail = (tail + 1) % 30;
             //printf("Debug process, cmd: %s \n", cmd.command);
             parse_and_execute(cmd.command, &cmd.source_addr, g_sock);
         }

@@ -125,7 +125,7 @@ void app_main(void)
 	*/
 	
 	//Create a task de varredura das teclas com afinidade no CPU 0
-	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 2, NULL, 0);
+	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 3, NULL, 0);
 
 	// Create UDP server task on CPU1
     xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 1);
@@ -153,7 +153,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(12));
+		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 }
 

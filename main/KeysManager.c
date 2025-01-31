@@ -936,7 +936,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 					response[3] = '\0';  // Finaliza a string
 					*/
 					// Envia a resposta
-					//printf("Debug Varredura: %s\n", response);
+					printf("Debug Varredura: %s\n", response);
 					sendto(g_sock, response, 5, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
 
 					// Atualiza o buffer
