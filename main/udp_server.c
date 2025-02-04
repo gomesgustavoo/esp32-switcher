@@ -181,12 +181,12 @@ esp_err_t start_udp_server(void) {
     ESP_LOGI(TAG, "UDP server stopped");
     return ESP_OK;
 }
-
+/*
 void process_command(const udp_command_t *cmd, int sock) {
     //ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
     parse_and_execute(cmd->command, &cmd->source_addr, sock);
 }
-
+*/
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int sock) {
