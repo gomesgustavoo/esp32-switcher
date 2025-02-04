@@ -557,6 +557,7 @@ unsigned char GetI2CAddress_OfKey(unsigned char KeyIndex)
 void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 {
 	unsigned char PortIndex, PosPort;
+	//printf("Debug ManageKey, cmd: %u, key: %u \n", comando, KeyIndex);
 
 	if (comando == COMANDO_KEYLED_ON)
 	{
@@ -632,120 +633,6 @@ void ManageKeyLeds(unsigned char comando, unsigned char KeyIndex)
 	}
 }
 
-void RotacionaLedsDePCAEnderecado(unsigned char EnderecoPCA)
-{
-	unsigned char cntTmp;
-	unsigned char cntBank;
-	unsigned char barramento;
-	unsigned int i;
-	
-	if (EnderecoPCA == ENDERECO_PCA_2_MM1300)//rotaciona teclas 1 a 16
-	{
-		//Acende o primeiro led e rotaciona até alçancar o ultimo led
-		barramento = 0xFE;
-		for (cntTmp = 0; cntTmp < 8; cntTmp++)
-		{
-			escreveRegistro(ENDERECO_PCA8575D_MM1300, barramento, 0xFF);
-			for (i = 0; i < 20500 ; i++); // wait
-			barramento = ~(barramento);
-			barramento = barramento << 1;
-			barramento = ~(barramento);
-		}
-		barramento = 0xFE;
-		for (cntTmp = 0; cntTmp < 8; cntTmp++)
-		{
-			escreveRegistro(ENDERECO_PCA8575D_MM1300, 0xFF, barramento);
-			for (i = 0; i < 20500 ; i++); // wait
-			barramento = ~(barramento);
-			barramento = barramento << 1;
-			barramento = ~(barramento);
-		}
-		escreveRegistro(ENDERECO_PCA8575D_MM1300, 0xFF, 0xFF);//apaga leds
-	}
-
-	for (cntBank = 0; cntBank < 5; cntBank++)
-	{
-		if (cntBank == 2) //arranjo para banco 2 que não segue a sequencia
-		{
-			barramento = 0xFE;
-			for (cntTmp = 0; cntTmp < 4; cntTmp++)
-			{
-				escreveRegistro(EnderecoPCA, io_configuration_register_banks[cntBank], barramento);
-				for (i = 0; i < 20500 ; i++); // wait
-				barramento = ~(barramento);
-				barramento = barramento << 1;
-				barramento = ~(barramento);
-			}
-			//apaga o barramento corrente
-			escreveRegistro(EnderecoPCA, io_configuration_register_banks[cntBank], 0xFF);
-		}
-		else 
-		{
-			
-			//Acende o primeiro led e rotaciona até alçancar o ultimo led
-			barramento = 0xFE;
-			for (cntTmp = 0; cntTmp < 8; cntTmp++)
-			{
-				escreveRegistro(EnderecoPCA, io_configuration_register_banks[cntBank], barramento);
-				for (i = 0; i < 20500 ; i++); // wait
-				barramento = ~(barramento);
-				barramento = barramento << 1;
-				barramento = ~(barramento);
-			}
-			//apaga o barramento corrente
-			escreveRegistro(EnderecoPCA, io_configuration_register_banks[cntBank], 0xFF);
-			
-			if (cntBank == 4) //arranjo para banco 4 que não segue a sequencia, ao finalizar o 4 na rotina acima complemta 4 leds na porta 2
-			{
-				barramento = 0xEF;
-				for (cntTmp = 0; cntTmp < 4; cntTmp++)
-				{
-					escreveRegistro(EnderecoPCA, io_configuration_register_banks[2], barramento); 
-					for (i = 0; i < 20500 ; i++); // wait
-					barramento = ~(barramento);
-					barramento = barramento << 1;
-					barramento = ~(barramento);
-				}
-				//apaga o barramento corrente
-				escreveRegistro(EnderecoPCA, io_configuration_register_banks[2], 0xFF); 
-			}
-			
-		}
-	}
-	
-}
-
-void ConfereERotacionaLedsDeTecladosExpansores(void)
-{
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
-		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //inicializa base
-	{ 
-		RotacionaLedsDePCAEnderecado(ENDERECO_PCA_2_MM1300);
-	}
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
-	{ 
-		brutalWatchdog = 0; //Feed the dog.	
-		RotacionaLedsDePCAEnderecado(ENDERECO_PCA_3_MM1200_A);
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) //se teclado expansão 2 presente
-	{
-		brutalWatchdog = 0; //Feed the dog.	
-		RotacionaLedsDePCAEnderecado(ENDERECO_PCA_3_MM1200_B); 
-	}
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) //se teclado expansão 3 presente
-	{
-		brutalWatchdog = 0; //Feed the dog.	
-		RotacionaLedsDePCAEnderecado(ENDERECO_PCA_3_MM1200_C);
-	}
-	
-}
-
 void RunKeysJustFirstLine(void )
 {
 	unsigned char cntTmp;
@@ -780,72 +667,23 @@ void RunKeysJustFirstLine(void )
 		barramento = ~(barramento);
 	}
 	escreveRegistro(ENDERECO_PCA8575D_MM1300, 0xFF, 0xFF);//apaga leds
-
-	
-
-	
 	//Restabelece situação dos Leds
 	escreveRegistro(ENDERECO_PCA8575D_MM1300, temp_io_register[0], temp_io_register[1]);
-	
 }
 	
 
 void RunKeyLedsOneTime(void)
 {
-	//static unsigned char estadoAnteriorGPI;
-	//unsigned char cntTmp;
 	unsigned char cntBank;
-	//unsigned char barramento;
 	unsigned char temp_io_register[7+5+5+5];
-	//unsigned int i;
 	
 	//salva situacao dos leds 
-	
 	for (cntBank = 0; cntBank < 5; cntBank++)
 	{
 		leRegistroUnico(ENDERECO_PCA_2_MM1300, (io_configuration_register_banks[cntBank]), &temp_io_register[cntBank]);
 	}
-	//for (cntBank = 5; cntBank < 7; cntBank++)
-	//{
 	lePCA8575RegistroUnico(ENDERECO_PCA8575D_MM1300, &temp_io_register[5]); //reg 6 pega automatico
-	//}
-	
-	//salva situacao dos leds  para teclados expansores
-	/*
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
-	{ 
-		for (cntBank = 7; cntBank < 12; cntBank++)
-		{
-				leRegistroUnico(ENDERECO_PCA_3_MM1200_A, (io_configuration_register_banks[cntBank-7]), &temp_io_register[cntBank]);
-		}							
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) //se teclado expansão 2 presente
-	{
-		for (cntBank = 12; cntBank < 17; cntBank++)
-		{
-				leRegistroUnico(ENDERECO_PCA_3_MM1200_B, (io_configuration_register_banks[cntBank-12]), &temp_io_register[cntBank]);
-		}							
-	}
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) //se teclado expansão 3 presente
-	{
-		for (cntBank = 17; cntBank < 22; cntBank++)
-		{
-				leRegistroUnico(ENDERECO_PCA_3_MM1200_C, (io_configuration_register_banks[cntBank-17]), &temp_io_register[cntBank]);
-		}							
-	}	
-	*/
-	
-	//Apaga todos os Leds
-	//ApagaTodasAsTeclas();
-	
-	//ConfereERotacionaLedsDeTecladosExpansores(); 
-	
 
-	
 	//Restabelece situação dos Leds
 	
 	for (cntBank = 0; cntBank < 5; cntBank++)
@@ -854,35 +692,6 @@ void RunKeyLedsOneTime(void)
 	}
 
 	escreveRegistro(ENDERECO_PCA8575D_MM1300, temp_io_register[5], temp_io_register[6]);
-	
-	//restaura situacao dos leds  para teclados expansores
-	/*
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
-	{ 
-		for (cntBank = 7; cntBank < 12; cntBank++)
-		{
-				escreveRegistro(ENDERECO_PCA_3_MM1200_A, (io_configuration_register_banks[cntBank-7]), temp_io_register[cntBank]);
-		}							
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) //se teclado expansão 2 presente
-	{
-		for (cntBank = 12; cntBank < 17; cntBank++)
-		{
-				escreveRegistro(ENDERECO_PCA_3_MM1200_B, (io_configuration_register_banks[cntBank-12]), temp_io_register[cntBank]);
-		}							
-	}
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) //se teclado expansão 3 presente
-	{
-		for (cntBank = 17; cntBank < 22; cntBank++)
-		{
-				escreveRegistro(ENDERECO_PCA_3_MM1200_C, (io_configuration_register_banks[cntBank-17]), temp_io_register[cntBank]);
-		}							
-	}	
-	*/
 }
 
 void AplicaValorFixoEmTodosOsPCAS(unsigned char ValorFixo)
@@ -925,130 +734,17 @@ void AcendeAsTeclasImpares(void)
 	AplicaValorFixoEmTodosOsPCAS(0xAA);
 
 }
-void RunTestMode(void)
-{
-	
-	unsigned char bufferLeituraPCAParaMenuDoTeste;
-	unsigned char bufferLeituraPCAParaDefinirModoDeTesteApertoTecla[(7+5+5+5)];
-	unsigned char cntBank;
-	unsigned char TempPort0;
-	unsigned char ExitKeyPressedWhenLow;
-	
-	TempPort0 = 0xFF;
-	ExitKeyPressedWhenLow = 1;
-	
-
-	//ESP Loop responsável pelo menu de escolha de testes no modo de testes, le o banco {x} de input do PCA9506
-	while (ExitKeyPressedWhenLow)
-	{		
-		//Configura o banco 2 como entrada
-		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], 0xFF); //Configura como entrada		
-		//Efetua a leitura do banco
-		leRegistroUnico(ENDERECO_PCA_2_MM1300, (input_port_register_bank[2]),&bufferLeituraPCAParaMenuDoTeste);
-		
-		escreveRegistro(ENDERECO_PCA_2_MM1300, io_configuration_register_banks[2], TempPort0);
-		if (bufferLeituraPCAParaMenuDoTeste == 0xF8)
-		{
-			ApagaTodasAsTeclas();
-			break;
-		}
-		if (bufferLeituraPCAParaMenuDoTeste == 0x7F) 
-		{
-			TempPort0 = 0xFF;
-			ApagaTodasAsTeclas();
-		}
-		else if (bufferLeituraPCAParaMenuDoTeste == 0xF7)
-		{
-			TempPort0 = 0x00;
-			AcendeTodasAsTeclas();
-		}
-		else if (bufferLeituraPCAParaMenuDoTeste == 0xEF)
-		{
-			TempPort0 = 0x55;
-			AcendeAsTeclasPares();
-		}
-		else if (bufferLeituraPCAParaMenuDoTeste == 0xDF)
-		{
-			TempPort0 = 0xAA;
-			AcendeAsTeclasImpares();
-		}
-		else if (bufferLeituraPCAParaMenuDoTeste == 0xBF){
-			ApagaTodasAsTeclas();
-
-			TempPort0 = 0xFF;
-
-			while (ExitKeyPressedWhenLow) {					
-						if (bufferLeituraPCAParaMenuDoTeste == 0xFC) // apertando teclas de saida do modo teste de tecla
-						{
-							printf("Saindo do modo teste de teclas\n");
-							bufferLeituraPCAParaMenuDoTeste = 0xFF;
-							esp_restart();
-							ExitKeyPressedWhenLow = 0;
-						} 
-				}
-			}
-			
-		}
-}
 
 void ThreadReadKey_SemInt(void)
 {
 	//ESP para a primeira versão funcional da Mesa vou utilizar os endereços específicos dos PCAs 9506 e 8575
 	ThreadReadKey_SemInt_Individualmente(0x22);
-
-	/*ESP trecho original que permite a escalabilidade para outras placas maiores, implementar em uma versão completa da mesa
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
-		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //inicializa base
-	{ 
-		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_2_MM1300);
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
-	{ 
-		//Timer8_Stop();
-		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_A);
-		//Timer8_Start();
-	}
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) //se teclado expansão 2 presente
-	{
-		//Timer8_Stop();		
-		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_B); 
-		//Timer8_Start();
-	}
-	
-	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) ==
-		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED)) //se teclado expansão 3 presente
-	{
-		//Timer8_Stop();
-		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_C);
-		//Timer8_Start();		
-	}
-	*/
-	
 }
 
 void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress) 
 {
-	//unsigned char * barramento;
 	unsigned char cntBank, cntTmp, varBitSelect, cntBankInicialRefPCA, cntBankFinalRefPCA_1, cntBankFinalRefPCA_2;
-	
-	/*unsigned char ArrayIndicaTecla[5][8] = {
-	{TECLA_7, TECLA_8, TECLA_9, TECLA_10, TECLA_11, TECLA_12, TECLA_13, TECLA_14},
-	{TECLA_15, TECLA_16, TECLA_17, TECLA_18, TECLA_19, TECLA_20, TECLA_21, TECLA_22},
-	{TECLA_24, TECLA_25, TECLA_26, TECLA_27, TECLA_28, TECLA_29, TECLA_30, TECLA_31},
-	{TECLA_32, TECLA_33, TECLA_34, TECLA_35, TECLA_36, TECLA_37, TECLA_38, TECLA_39},
-	{TECLA_6, TECLA_23, TECLA_40, TECLA_1, TECLA_2, TECLA_3, TECLA_4, TECLA_5}
-};
-	unsigned char ArrayIndicaTecla[7][8] = {
-	{TECLA_17, TECLA_18, TECLA_19, TECLA_20, TECLA_21, TECLA_22, TECLA_23, TECLA_24},
-	{TECLA_25, TECLA_26, TECLA_27, TECLA_28, TECLA_29, TECLA_30, TECLA_31, TECLA_32},
-	{TECLA_49, TECLA_50, TECLA_51, TECLA_52, TECLA_53, TECLA_54, TECLA_55, TECLA_56},
-	{TECLA_33, TECLA_34, TECLA_35, TECLA_36, TECLA_37, TECLA_38, TECLA_39, TECLA_40},
-	{TECLA_41, TECLA_42, TECLA_43, TECLA_44, TECLA_45, TECLA_46, TECLA_47, TECLA_48},
-	{TECLA_1, TECLA_2, TECLA_3, TECLA_4, TECLA_5, TECLA_6, TECLA_7, TECLA_8},
-	{TECLA_9, TECLA_10, TECLA_11, TECLA_12, TECLA_13, TECLA_14, TECLA_15, TECLA_16}
-};*/
+
 	if (i2CAddress == ENDERECO_PCA_2_MM1300)
 	{
 		cntBankInicialRefPCA = 0;
@@ -1220,12 +916,31 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 			{
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
-					char response[5];
-    				snprintf(response, sizeof(response), "D%u", ArrayIndicaTecla[cntBank][cntTmp]);
-    				sendto(g_sock, response, strlen(response), 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
-					//ManageKeyLeds(COMANDO_KEYLED_ON, ArrayIndicaTecla[cntBank][cntTmp]);
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
-					//printf("TECLA PRESSIONADA: %u\n", ArrayIndicaTecla[cntBank][cntTmp]);
+					char response[5]; // Buffer fixo para a resposta
+					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
+					// Preenche diretamente a resposta
+					response[0] = 'D';
+					response[1] = (tecla_id / 100) + '0';  // Primeiro dígito (centena)
+					response[2] = ((tecla_id / 10) % 10) + '0';  // Segundo dígito (dezena)
+					response[3] = (tecla_id % 10) + '0';  // Terceiro dígito (unidade)
+					response[4] = '\0';  // Finaliza a string
+					
+					/*
+					char response[4]; // Buffer fixo para a resposta
+					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
+					// Preenche a resposta no formato "D+Hex"
+					response[0] = 'D';
+					response[1] = (tecla_id >> 4) < 10 ? (tecla_id >> 4) + '0' : (tecla_id >> 4) - 10 + 'A';  // Digito mais significativo
+					response[2] = (tecla_id & 0x0F) < 10 ? (tecla_id & 0x0F) + '0' : (tecla_id & 0x0F) - 10 + 'A';  // Digito menos significativo
+					response[3] = '\0';  // Finaliza a string
+					*/
+					// Envia a resposta
+					printf("Debug Varredura: %s\n", response);
+					sendto(g_sock, response, 5, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+
+					// Atualiza o buffer
+					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
 				}
 				else 
 				{

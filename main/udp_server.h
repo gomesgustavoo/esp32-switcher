@@ -6,7 +6,8 @@
 #include "lwip/sockets.h"
 
 // Define o tamanho máximo de buffer para comandos UDP
-#define MAX_BUFFER_SIZE 256
+#define MAX_BUFFER_SIZE 10
+#define PORT 5000
 
 // Estrutura para representar um comando UDP recebido
 typedef struct {
@@ -23,5 +24,7 @@ esp_err_t start_udp_server(void);
 esp_err_t configure_ethernet(void);
 void log_ip_address(esp_netif_t *netif);
 void process_command(const udp_command_t *cmd, int sock);
-void parse_and_execute(const char *command, struct sockaddr_in *source_addr, int sock);
+void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int sock);
+void enqueue_command(const udp_command_t *cmd);
+void process_commands(void *pvParameters);
 #endif // UDP_SERVER_H

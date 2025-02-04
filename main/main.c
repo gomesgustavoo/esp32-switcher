@@ -26,13 +26,11 @@ Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_err.h"
-#include "esp_timer.h"
 #include "udp_server.h"
 
 
-unsigned char TesteCode = 143;
 unsigned char timerTick;
-unsigned int brutalWatchdog;
+
 extern unsigned char AuxVarToBlinkBanks[7+5+5+5];
 unsigned char AuxVarToShowIfEncoderAandBAreConnected;
 unsigned char AuxVarToShowVersionOfHardwareBoard;
@@ -58,6 +56,7 @@ void app_main(void)
 	 Confere se qual tipo de teclado está em operação
 	************************************************************************************/
 	//ESP Primeira sequencia de logs no monitor serial, ESP_OK quando encontra o PCA e ESP_FAIL quando não encontra
+	/*
 	AuxVarToShowVersionOfHardwareBoard = 0x00;
 	
 	if (CheckPcaDevice(ENDERECO_PCA_1))
@@ -84,7 +83,7 @@ void app_main(void)
 	{
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED;	
 	}
-
+	*/
 	/***********************************************************************************
 	inicializaPCAs
 	************************************************************************************/
@@ -125,10 +124,10 @@ void app_main(void)
 	*/
 	
 	//Create a task de varredura das teclas com afinidade no CPU 0
-	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 0);
+	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 3, NULL, 0);
 
 	// Create UDP server task on CPU1
-    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 4096, NULL, configMAX_PRIORITIES - 2, NULL, 1);
+    xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 1);
 }
 
 //ESP Rotina responsável por inicializar o Status of keyboard leds que vai ser utilizado no ThreadReadKey
@@ -153,7 +152,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(8));
+		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 }
 
