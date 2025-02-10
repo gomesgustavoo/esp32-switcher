@@ -6,7 +6,7 @@
 #include "lwip/sockets.h"
 
 // Define o tamanho máximo de buffer para comandos UDP
-#define MAX_BUFFER_SIZE 10
+#define MAX_BUFFER_SIZE 6
 #define PORT 5000
 
 // Estrutura para representar um comando UDP recebido

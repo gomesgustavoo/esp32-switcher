@@ -1,22 +1,22 @@
 /*****************************************************************************
-(C) Copyright 2021 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
+(C) Copyright 2025 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
 
 File Name: main.c
 
-Projeto:	Teclado Mago 56 teclas com expansão
+Projeto:	Teclado Mago na Rede 
 
-Data: 30/08/2021			Rev 1.0
+Data: 05/02/2025			Rev 2.0
 
-Autor: Eduardo Artur Cunha 
+Autor: Gustavo Gomes Formento
 
-Software: PSoC Designer 5.4 SP1 - Build 3191 - 04-March-2015.21:56:41
+Referência: Eduardo Artur Cunha
 
-Compilador: Imagecraft Compiler Standard V7.0.5
+Compilador: ESP-IDF
 
-Hardware: PSOC microcontroler - CY8C24894-24LT
+Hardware: ESP32 Wirelass Tag WT32-eth01
 
-Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
-
+Descricao:	Arquivo Main do projeto, responsável por inicializar os PCA's e fazer o
+setup das tasks para o FreeRTOS.
 *****************************************************************************/
 #include "declaracoes.h"
 #include "definicoes.h"
@@ -56,34 +56,27 @@ void app_main(void)
 	 Confere se qual tipo de teclado está em operação
 	************************************************************************************/
 	//ESP Primeira sequencia de logs no monitor serial, ESP_OK quando encontra o PCA e ESP_FAIL quando não encontra
-	/*
+	
 	AuxVarToShowVersionOfHardwareBoard = 0x00;
 	
-	if (CheckPcaDevice(ENDERECO_PCA_1))
-	{
-		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_40TECLAS; //0x00
-	}
-
 	if (CheckPcaDevice(ENDERECO_PCA_2_MM1300))
 	{
+		printf("Debug: Hardware version 56t sem expansao\n");
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSEMEXPANSAO;
 	}
 	
 	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_A))
 	{
+		printf("Debug: Hardware version 56t + pca 1\n");
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED;
 	}
 
 	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_B))
 	{
+		printf("Debug: Hardware version 56t + pca 2\n");
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED;
 	}
-	
-	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_C))
-	{
-		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED;	
-	}
-	*/
+
 	/***********************************************************************************
 	inicializaPCAs
 	************************************************************************************/

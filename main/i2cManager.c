@@ -149,14 +149,33 @@ void inicializaPCAs_Individualmente(unsigned char i2cAddress) {
         ESP_LOGI("I2C", "Sucesso ao manter a polaridade original");
     }
     i2c_cmd_link_delete(cmd);
+
+    printf("inicializou o PCA %u\n", i2cAddress);
     
 }
 
 void inicializaPCAs(void)
 {
     //ESP Rotina de inicialização de PCAs especifica para M1-56t
-    inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
-    printf("inicialização do primeiro PCA concluída, continuando a rotina \n");
+    //inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
+    if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) ==
+		(HARDWARE_VERSION_56TECLASSEMEXPANSAO)) //inicializa base
+	{ 
+		printf("Debug: inicializou pca 1\n");
+        inicializaPCAs_Individualmente(ENDERECO_PCA_2_MM1300);
+	}
+	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
+		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) //se teclado expansão 1 presente
+	{ 
+		printf("Debug: inicializou pca expansao 1\n");
+        inicializaPCAs_Individualmente(ENDERECO_PCA_3_MM1200_A);
+	}
+	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) ==
+		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED)) //se teclado expansão 2 presente
+	{
+        printf("Debug: inicializou pca expansao 2\n");
+		inicializaPCAs_Individualmente(ENDERECO_PCA_3_MM1200_B); 
+	}
 }
 
 void leRegistro(unsigned char endereco, unsigned char reg, unsigned char *buf) {
@@ -376,10 +395,11 @@ unsigned char CheckPcaDevice(unsigned char endereco)
     status = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     if (status != ESP_OK) {
         printf("PCA no endereço %u não encontrado, ERRO: %s\n",endereco, esp_err_to_name(status));
-        return 1;
+        return 0;
     	}
     else {
-        return 0;
+        printf("PCA no endereço %u encontrado !!!\n", endereco);
+        return 1;
     	}
         
     i2c_cmd_link_delete(cmd);

@@ -19,7 +19,7 @@ struct sockaddr_in g_client_addr;
 bool g_client_addr_initialized = false;
 
 //Teste de fila de comandos com notification para corrigir o problema do TAKE
-udp_command_t command_buffer[30];
+udp_command_t command_buffer[32];
 volatile int head = 0;
 volatile int tail = 0;
 
@@ -62,7 +62,7 @@ esp_err_t configure_ethernet(void) {
     esp32_mac_config.smi_gpio.mdio_num = GPIO_NUM_18; // MDIO pin
 
     eth_mac_config_t mac_config = {
-    .sw_reset_timeout_ms = 100,   // D
+    .sw_reset_timeout_ms = 100, 
     .rx_task_stack_size = 4096, 
     .rx_task_prio = 15,          
     };
@@ -118,7 +118,7 @@ esp_err_t start_udp_server(void) {
         .sin_addr.s_addr = htonl(INADDR_ANY)
     };
 
-    int buff_size = 8192;
+    int buff_size = 8196;
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
 
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -154,7 +154,7 @@ esp_err_t start_udp_server(void) {
         }
 
         rx_buffer[len] = '\0';  // Null-terminate received data
-        //printf("Debug rx_buffer: %s \n", rx_buffer);
+        printf("Debug rx_buffer: %s \n", rx_buffer);
         udp_command_t cmd;
 
         // Otimização para copiar apenas o necessário
@@ -172,8 +172,8 @@ esp_err_t start_udp_server(void) {
             processor_awake = false;            
             }
         }
-        enqueue_command(&cmd);
         taskYIELD();
+        enqueue_command(&cmd);
         //process_command(&cmd, sock);
     }
     // Cleanup
@@ -217,21 +217,6 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
     }
 }
     /*
-    else if (strncmp(command, "IP", 2) == 0) {
-        esp_netif_ip_info_t ip_info;
-        if (esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("ETH_DEF"), &ip_info) == ESP_OK) {
-            char response[80];
-            snprintf(response, sizeof(response), 
-                     "IP Address: " IPSTR "\nNetmask: " IPSTR "\nGateway: " IPSTR,
-                     IP2STR(&ip_info.ip), IP2STR(&ip_info.netmask), IP2STR(&ip_info.gw));
-            sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-            ESP_LOGI(TAG, "Enviado IP info: %s", response);
-        } else {
-            const char *error_response = "Erro ao obter o IP";
-            sendto(sock, error_response, strlen(error_response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-            ESP_LOGE(TAG, "Erro ao obter informações de IP");
-        }
-
     // Reboot do ESP32
     } else if (strncmp(command, "REBOOT", 6) == 0) {
         const char *response = "ESP32 está reiniciando...\n";
@@ -254,8 +239,6 @@ void enqueue_command(const udp_command_t *cmd) {
     } else {
         command_buffer[head] = *cmd;
         head = next_head;
-
-        // Notifica apenas se necessário
         if (!processor_awake) {
             processor_awake = true;
             xTaskNotifyGive(processor_task_handle);
@@ -268,13 +251,10 @@ void process_commands(void *pvParameters) {
 
     while (1) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
         processor_awake = true;
-
         while (head != tail) {
             cmd = command_buffer[tail];
             tail = (tail + 1) % 30;
-            //printf("Debug process, cmd: %s \n", cmd.command);
             parse_and_execute(cmd.command, &cmd.source_addr, g_sock);
         }
 

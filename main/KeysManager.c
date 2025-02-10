@@ -1,22 +1,22 @@
-
 /*****************************************************************************
-(C) Copyright 2021 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
+(C) Copyright 2025 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
 
 File Name: KeysManager.c
 
-Data: 30/08/2021			Rev 1.0
+Projeto:	Teclado Mago na Rede 
 
-Autor: Eduardo Artur Cunha
+Data: 05/02/2025			Rev 2.0
 
-Software: PSoC Designer 5.4 SP1 - Build 3191 - 04-March-2015.21:56:41
+Autor: Gustavo Gomes Formento
 
-Compilador: Imagecraft Compiler Standard V7.0.5
+Referência: Eduardo Artur Cunha
 
-Hardware: PSOC microcontroler - CY8C24894-24LT
+Compilador: ESP-IDF
 
-Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
-			
+Hardware: ESP32 Wirelass Tag WT32-eth01
 
+Descricao:	Código responsável por realizar as abstrações envolvendo GPIO, como
+buffers de varredura das teclas e mapeamento de teclas
 *****************************************************************************/
 #include "udp_server.h"
 #include "udp_server.c"
@@ -738,7 +738,15 @@ void AcendeAsTeclasImpares(void)
 void ThreadReadKey_SemInt(void)
 {
 	//ESP para a primeira versão funcional da Mesa vou utilizar os endereços específicos dos PCAs 9506 e 8575
-	ThreadReadKey_SemInt_Individualmente(0x22);
+	ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_2_MM1300);
+
+	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
+		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED))
+	{ 
+		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_A);
+		vTaskDelay(pdMS_TO_TICKS(4));
+		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_B);
+	}
 }
 
 void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress) 
