@@ -166,7 +166,7 @@ esp_err_t start_udp_server(void) {
 
         if (cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
             if (cmd.command[0] == 'O') {
-            taskYIELD();
+            //taskYIELD();
             processor_awake = true;
             continue;
             } else {
