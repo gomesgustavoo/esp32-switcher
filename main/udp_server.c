@@ -166,6 +166,7 @@ esp_err_t start_udp_server(void) {
 
         if (cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
             if (cmd.command[0] == 'O') {
+            taskYIELD();
             processor_awake = true;
             continue;
             } else {
@@ -194,7 +195,7 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
     // Verifica se o comando inicia com 'F' ou 'O'
     if (command[0] == 'F' || command[0] == 'O') {
         char *end;
-        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 10);
+        unsigned char led_id = (unsigned char)strtol(command + 1, &end, 16);
         //printf("Debug led_id: %u \n", led_id);
         if (*end == '\0' || *end == '\n' || *end == '\r') {
             int action = (command[0] == 'F') ? COMANDO_KEYLED_OFF : COMANDO_KEYLED_ON;
@@ -209,11 +210,23 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
         }
     // Handshake, retorna uma resposta e salva o cliente no escopo global
     } else if (command[0] == 'H' && command[1] == 'I') {
-        const char *response = "4S - Esp32 Mago Switcher :";
-        sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
-        ESP_LOGI(TAG, "Handshake enviado para %s:%d", inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
-        g_client_addr = *source_addr;
-        g_client_addr_initialized = true;
+        if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
+            (HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED))
+        { 
+            const char *response = "M6ESPV1";
+            printf("Resposta: %s", response);
+            sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+            ESP_LOGI(TAG, "Handshake enviado para %s:%d", inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
+            g_client_addr = *source_addr;
+            g_client_addr_initialized = true;
+        }else {
+            const char *response = "M4ESPV1";
+            printf("Resposta: %s", response);
+            sendto(sock, response, strlen(response), 0, (struct sockaddr *)source_addr, sizeof(*source_addr));
+            ESP_LOGI(TAG, "Handshake enviado para %s:%d", inet_ntoa(source_addr->sin_addr), ntohs(source_addr->sin_port));
+            g_client_addr = *source_addr;
+            g_client_addr_initialized = true;   
+        }
     }
 }
     /*
