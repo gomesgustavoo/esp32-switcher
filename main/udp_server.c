@@ -167,13 +167,15 @@ esp_err_t start_udp_server(void) {
         if (cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
             if (cmd.command[0] == 'O') {
             //taskYIELD();
+            ManageKeyLeds(COMANDO_KEYLED_ON, TECLA_56);
             processor_awake = true;
             continue;
             } else {
+            ManageKeyLeds(COMANDO_KEYLED_OFF, TECLA_56);
             processor_awake = false;            
             }
         }
-        taskYIELD();
+        //taskYIELD();
         enqueue_command(&cmd);
         //process_command(&cmd, sock);
     }
