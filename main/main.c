@@ -42,6 +42,8 @@ extern unsigned char ArrayIndicaTecla[7+5+5+5][8];
 extern unsigned char StatusOfKeyBoardLeds[7+5+5+5][2];
 extern unsigned char StatusOfEncoderBoardLeds[2];
 
+TaskHandle_t varredura_handle = NULL;
+
 void app_main(void)
 {
 	//Inicializa o i2c, instala os drivers necessários
@@ -117,7 +119,7 @@ void app_main(void)
 	*/
 	
 	//Create a task de varredura das teclas com afinidade no CPU 0
-	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 3, NULL, 0);
+	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 13, &varredura_handle, 0);
 
 	// Create UDP server task on CPU1
     xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 1);
@@ -145,7 +147,7 @@ void readkey_task(void *pvParameters) {
 	while (1) {
 		ThreadReadKey_SemInt();
 
-		vTaskDelay(pdMS_TO_TICKS(20));
+		vTaskDelay(pdMS_TO_TICKS(40));
 	}
 }
 

@@ -17,7 +17,13 @@ Descricao:	Definições gerais do projeto.
 			
 
 *****************************************************************************/
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
+extern TaskHandle_t varredura_handle;
+
+#define NOTIFY_PAUSE  (1UL << 0)
+#define NOTIFY_RESUME (1UL << 1)
 
 #define FIRMWARE_VERSION	42
 #define HARDWARE_VERSION	0

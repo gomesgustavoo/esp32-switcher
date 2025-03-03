@@ -132,7 +132,7 @@ esp_err_t start_udp_server(void) {
     fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
     // Listen for incoming data
-    char rx_buffer[512];
+    char rx_buffer[256];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
     g_sock = sock;
@@ -154,7 +154,7 @@ esp_err_t start_udp_server(void) {
         }
 
         rx_buffer[len] = '\0';  // Null-terminate received data
-        printf("Debug rx_buffer: %s \n", rx_buffer);
+        //printf("Debug rx_buffer: %s \n", rx_buffer);
         udp_command_t cmd;
 
         // Otimização para copiar apenas o necessário
@@ -164,18 +164,16 @@ esp_err_t start_udp_server(void) {
         // Atribuir o endereço
         cmd.source_addr = source_addr;
 
-        if (cmd.command[1] == '1' && cmd.command[2] == '6' && cmd.command[3] == '8') {
+        if (cmd.command[2] == '8' && cmd.command[1] == 'a') {
             if (cmd.command[0] == 'O') {
-            //taskYIELD();
-            ManageKeyLeds(COMANDO_KEYLED_ON, TECLA_56);
-            processor_awake = true;
-            continue;
-            } else {
-            ManageKeyLeds(COMANDO_KEYLED_OFF, TECLA_56);
-            processor_awake = false;            
+                xTaskNotify(varredura_handle, NOTIFY_PAUSE, eSetBits);
+                continue;
+            }
+            if (cmd.command[0] == 'F') {
+                xTaskNotify(varredura_handle, NOTIFY_RESUME, eSetBits);
+                //continue;
             }
         }
-        //taskYIELD();
         enqueue_command(&cmd);
         //process_command(&cmd, sock);
     }
@@ -271,8 +269,8 @@ void process_commands(void *pvParameters) {
             cmd = command_buffer[tail];
             tail = (tail + 1) % 30;
             parse_and_execute(cmd.command, &cmd.source_addr, g_sock);
+            vTaskDelay(pdMS_TO_TICKS(20));
         }
-
         processor_awake = false; 
     }
 }

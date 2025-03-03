@@ -28,6 +28,7 @@ buffers de varredura das teclas e mapeamento de teclas
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
+#include <lwip/sockets.h>
 
 unsigned char comando, dado1, dado2;
 unsigned char AuxVarToBlinkBanks[7+5+5+5];
@@ -925,16 +926,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
 					//bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
-					//char response[5]; // Buffer fixo para a resposta
-					//unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
-					/* Preenche diretamente a resposta
-					response[0] = 'D';
-					response[1] = (tecla_id / 100) + '0';  // Primeiro dígito (centena)
-					response[2] = ((tecla_id / 10) % 10) + '0';  // Segundo dígito (dezena)
-					response[3] = (tecla_id % 10) + '0';  // Terceiro dígito (unidade)
-					response[4] = '\0';  // Finaliza a string
-					*/
-					
+
 					char response[4]; // Buffer fixo para a resposta
 					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
 					// Preenche a resposta no formato "D+Hex"
@@ -944,11 +936,12 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 					response[3] = '\0';  // Finaliza a string
 					
 					// Envia a resposta
-					printf("Debug Varredura: %s\n", response);
-					sendto(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
-
+					//sendto(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+					send_udp_with_notification_check(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+					//printf("Debug Varredura: %s\n", response);
 					// Atualiza o buffer
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
+					vTaskDelay(pdMS_TO_TICKS(30));
 				}
 				else 
 				{
@@ -959,4 +952,31 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 		}
 	}
 	
+}
+
+int send_udp_with_notification_check(int sock, const void *buffer, size_t len, int flags,
+                                       const struct sockaddr *dest_addr, socklen_t addrlen)
+{
+    uint32_t ulNotificationValue;
+
+    // Checa se há notificações pendentes sem bloquear
+    if (xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, 0) == pdTRUE) {
+        // Se recebeu notificação de pausa, aguarda a notificação de resume
+        if (ulNotificationValue & NOTIFY_PAUSE) {
+			//printf("Pause Varredura!!\n");
+		if (ulNotificationValue & NOTIFY_RESUME) {
+            //printf("Unpause Varredura!!\n");
+		} else {
+            while (1) {
+                if (xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY) == pdTRUE) {
+                    if (ulNotificationValue & NOTIFY_RESUME) {
+                        //printf("Unpause Varredura!!\n");
+						break;  // Sai do loop e permite o envio
+						}
+					}
+				}
+			}
+		}
+	}
+	return sendto(sock, buffer, len, flags, dest_addr, addrlen);
 }
