@@ -1,22 +1,22 @@
-
 /*****************************************************************************
-(C) Copyright 2021 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
+(C) Copyright 2025 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
 
 File Name: KeysManager.c
 
-Data: 30/08/2021			Rev 1.0
+Projeto:	Teclado Mago na Rede 
 
-Autor: Eduardo Artur Cunha
+Data: 05/02/2025			Rev 2.0
 
-Software: PSoC Designer 5.4 SP1 - Build 3191 - 04-March-2015.21:56:41
+Autor: Gustavo Gomes Formento
 
-Compilador: Imagecraft Compiler Standard V7.0.5
+Referência: Eduardo Artur Cunha
 
-Hardware: PSOC microcontroler - CY8C24894-24LT
+Compilador: ESP-IDF
 
-Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
-			
+Hardware: ESP32 Wirelass Tag WT32-eth01
 
+Descricao:	Código responsável por realizar as abstrações envolvendo GPIO, como
+buffers de varredura das teclas e mapeamento de teclas
 *****************************************************************************/
 #include "udp_server.h"
 #include "udp_server.c"
@@ -28,6 +28,7 @@ Descricao:	Arquivo contendo as rotinas para gerenciamento dos GPIs e GPOs
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
+#include <lwip/sockets.h>
 
 unsigned char comando, dado1, dado2;
 unsigned char AuxVarToBlinkBanks[7+5+5+5];
@@ -737,8 +738,16 @@ void AcendeAsTeclasImpares(void)
 
 void ThreadReadKey_SemInt(void)
 {
-	//ESP para a primeira versão funcional da Mesa vou utilizar os endereços específicos dos PCAs 9506 e 8575
-	ThreadReadKey_SemInt_Individualmente(0x22);
+
+	ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_2_MM1300);
+
+	if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
+		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED))
+	{ 
+		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_A);
+		vTaskDelay(pdMS_TO_TICKS(10));
+		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_B);
+	}
 }
 
 void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress) 
@@ -916,17 +925,8 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 			{
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
-					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
-					char response[5]; // Buffer fixo para a resposta
-					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
-					// Preenche diretamente a resposta
-					response[0] = 'D';
-					response[1] = (tecla_id / 100) + '0';  // Primeiro dígito (centena)
-					response[2] = ((tecla_id / 10) % 10) + '0';  // Segundo dígito (dezena)
-					response[3] = (tecla_id % 10) + '0';  // Terceiro dígito (unidade)
-					response[4] = '\0';  // Finaliza a string
-					
-					/*
+					//bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
+
 					char response[4]; // Buffer fixo para a resposta
 					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
 					// Preenche a resposta no formato "D+Hex"
@@ -934,11 +934,10 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 					response[1] = (tecla_id >> 4) < 10 ? (tecla_id >> 4) + '0' : (tecla_id >> 4) - 10 + 'A';  // Digito mais significativo
 					response[2] = (tecla_id & 0x0F) < 10 ? (tecla_id & 0x0F) + '0' : (tecla_id & 0x0F) - 10 + 'A';  // Digito menos significativo
 					response[3] = '\0';  // Finaliza a string
-					*/
+					
 					// Envia a resposta
-					printf("Debug Varredura: %s\n", response);
-					sendto(g_sock, response, 5, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
-
+					sendto(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
+					//printf("Debug Varredura: %s\n", response);
 					// Atualiza o buffer
 					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
 				}

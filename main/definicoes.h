@@ -17,7 +17,12 @@ Descricao:	Definições gerais do projeto.
 			
 
 *****************************************************************************/
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
 
+extern TaskHandle_t varredura_handle;
+extern SemaphoreHandle_t i2c_mutex;
 
 #define FIRMWARE_VERSION	42
 #define HARDWARE_VERSION	0

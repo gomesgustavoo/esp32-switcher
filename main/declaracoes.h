@@ -19,6 +19,10 @@ Descricao:	Esqueletos das funções do projeto Teclado Mago 56 teclas com expans
 *****************************************************************************/
 
 #include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include <lwip/sockets.h>
+
 extern unsigned char AuxVarToShowVersionOfHardwareBoard;
 
 //KeysManager.c

@@ -1,22 +1,22 @@
 /*****************************************************************************
-(C) Copyright 2021 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
+(C) Copyright 2025 - 4S Informatica Ind. e Com. LTDA. All rights reserved.
 
 File Name: main.c
 
-Projeto:	Teclado Mago 56 teclas com expansão
+Projeto:	Teclado Mago na Rede 
 
-Data: 30/08/2021			Rev 1.0
+Data: 05/02/2025			Rev 2.0
 
-Autor: Eduardo Artur Cunha 
+Autor: Gustavo Gomes Formento
 
-Software: PSoC Designer 5.4 SP1 - Build 3191 - 04-March-2015.21:56:41
+Referência: Eduardo Artur Cunha
 
-Compilador: Imagecraft Compiler Standard V7.0.5
+Compilador: ESP-IDF
 
-Hardware: PSOC microcontroler - CY8C24894-24LT
+Hardware: ESP32 Wirelass Tag WT32-eth01
 
-Descricao:	Código-fonte do projeto de GPI e conversor serial USB.
-
+Descricao:	Arquivo Main do projeto, responsável por inicializar os PCA's e fazer o
+setup das tasks para o FreeRTOS.
 *****************************************************************************/
 #include "declaracoes.h"
 #include "definicoes.h"
@@ -42,6 +42,9 @@ extern unsigned char ArrayIndicaTecla[7+5+5+5][8];
 extern unsigned char StatusOfKeyBoardLeds[7+5+5+5][2];
 extern unsigned char StatusOfEncoderBoardLeds[2];
 
+TaskHandle_t varredura_handle = NULL;
+SemaphoreHandle_t i2c_mutex = NULL;
+
 void app_main(void)
 {
 	//Inicializa o i2c, instala os drivers necessários
@@ -56,40 +59,40 @@ void app_main(void)
 	 Confere se qual tipo de teclado está em operação
 	************************************************************************************/
 	//ESP Primeira sequencia de logs no monitor serial, ESP_OK quando encontra o PCA e ESP_FAIL quando não encontra
-	/*
+	
 	AuxVarToShowVersionOfHardwareBoard = 0x00;
 	
-	if (CheckPcaDevice(ENDERECO_PCA_1))
-	{
-		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_40TECLAS; //0x00
-	}
-
 	if (CheckPcaDevice(ENDERECO_PCA_2_MM1300))
 	{
+		printf("Debug: Hardware version 56t sem expansao\n");
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSEMEXPANSAO;
 	}
 	
 	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_A))
 	{
+		printf("Debug: Hardware version 56t + pca 1\n");
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED;
 	}
 
 	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_B))
 	{
+		printf("Debug: Hardware version 56t + pca 2\n");
 		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS2DETECTED;
 	}
-	
-	if (CheckPcaDevice(ENDERECO_PCA_3_MM1200_C))
-	{
-		AuxVarToShowVersionOfHardwareBoard |= HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS3DETECTED;	
-	}
-	*/
+
 	/***********************************************************************************
 	inicializaPCAs
 	************************************************************************************/
 	//ESP Rotina de inicialização dos PCAs alterada para o funcionamento especifico no esp
 	inicializaPCAs();
 	vTaskDelay(pdMS_TO_TICKS(60));
+
+	i2c_mutex = xSemaphoreCreateMutex();
+    if (i2c_mutex == NULL) {
+        printf("Erro ao criar mutex\n");
+        return;
+    }
+
 	
 	//Inicializa vertorzao de leitura de teclas
 	for (cntTmp = 0; cntTmp < 5; cntTmp++)
@@ -124,7 +127,7 @@ void app_main(void)
 	*/
 	
 	//Create a task de varredura das teclas com afinidade no CPU 0
-	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 3, NULL, 0);
+	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 3, &varredura_handle, 0);
 
 	// Create UDP server task on CPU1
     xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 1);
@@ -149,11 +152,17 @@ void inicializaStatusOfKeyBoardLeds(void)
 //Task de varredura
 void readkey_task(void *pvParameters) {
 	printf("Task de Varredura started on CPU %d\n", xPortGetCoreID());
-	while (1) {
-		ThreadReadKey_SemInt();
-
-		vTaskDelay(pdMS_TO_TICKS(20));
-	}
+    while (1) {
+        // Tenta adquirir o mutex com timeout
+        if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            // Executa a leitura do teclado
+            ThreadReadKey_SemInt();
+            // Libera o mutex após o acesso
+            xSemaphoreGive(i2c_mutex);
+        }
+        // Cede o processador para outras tasks
+        vTaskDelay(pdMS_TO_TICKS(60));
+    }
 }
 
 // Inicia o servidor udp na porta 500
