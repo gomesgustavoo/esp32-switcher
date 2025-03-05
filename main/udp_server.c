@@ -118,7 +118,7 @@ esp_err_t start_udp_server(void) {
         .sin_addr.s_addr = htonl(INADDR_ANY)
     };
 
-    int buff_size = 8196;
+    int buff_size = 4098;
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buff_size, sizeof(buff_size));
 
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -126,13 +126,15 @@ esp_err_t start_udp_server(void) {
         close(sock);
         return ESP_FAIL;
     }
+
     ESP_LOGI(TAG, "UDP server listening on port %d", PORT);
+
     // Configurar o socket para não bloquear
     int flags = fcntl(sock, F_GETFL, 0);
     fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
     // Listen for incoming data
-    char rx_buffer[256];
+    char rx_buffer[512];
     struct sockaddr_in source_addr;
     socklen_t addr_len = sizeof(source_addr);
     g_sock = sock;
@@ -140,9 +142,7 @@ esp_err_t start_udp_server(void) {
     xTaskCreatePinnedToCore(process_commands, "CommandProcessor", 4096, NULL, configMAX_PRIORITIES - 2, &processor_task_handle, 1);
 
     while (1) {
-        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,
-                           (struct sockaddr *)&source_addr, &addr_len);
-
+        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0,(struct sockaddr *)&source_addr, &addr_len);
          if (len < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 vTaskDelay(pdMS_TO_TICKS(10));
@@ -153,15 +153,11 @@ esp_err_t start_udp_server(void) {
             }
         }
 
-        rx_buffer[len] = '\0';  // Null-terminate received data
+        rx_buffer[len] = '\0'; 
         //printf("Debug rx_buffer: %s \n", rx_buffer);
         udp_command_t cmd;
-
-        // Otimização para copiar apenas o necessário
-        //size_t rx_length = strnlen(rx_buffer, MAX_BUFFER_SIZE - 1);
         memcpy(cmd.command, rx_buffer, len);
         cmd.command[len] = '\0';
-        // Atribuir o endereço
         cmd.source_addr = source_addr;
         enqueue_command(&cmd);
         
@@ -171,12 +167,6 @@ esp_err_t start_udp_server(void) {
     ESP_LOGI(TAG, "UDP server stopped");
     return ESP_OK;
 }
-/*
-void process_command(const udp_command_t *cmd, int sock) {
-    //ESP_LOGI(TAG, "Processando comando: '%s'", cmd->command);
-    parse_and_execute(cmd->command, &cmd->source_addr, sock);
-}
-*/
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int sock) {
@@ -187,7 +177,7 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
         //printf("Debug led_id: %u \n", led_id);
         if (*end == '\0' || *end == '\n' || *end == '\r') {
             int action = (command[0] == 'F') ? COMANDO_KEYLED_OFF : COMANDO_KEYLED_ON;
-            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE){
+            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(120)) == pdTRUE){
             ManageKeyLeds(action, led_id);
             xSemaphoreGive(i2c_mutex);
             }
@@ -195,13 +185,13 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
     // Ligar / Desligar todos os Leds da mesa
     } else if (command[0] == 'A') {
         if (command[1] == '0' || command[1] == '1') {
-            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(120)) == pdTRUE) {
             inicializaStatusOfKeyBoardLeds();
             xSemaphoreGive(i2c_mutex);
         }
     }
          else {
-            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(120)) == pdTRUE) {
             ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
             xSemaphoreGive(i2c_mutex);
         }
