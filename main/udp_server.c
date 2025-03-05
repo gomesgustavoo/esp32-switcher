@@ -163,19 +163,8 @@ esp_err_t start_udp_server(void) {
         cmd.command[len] = '\0';
         // Atribuir o endereço
         cmd.source_addr = source_addr;
-
-        if (cmd.command[2] == '8' && cmd.command[1] == 'a') {
-            if (cmd.command[0] == 'O') {
-                xTaskNotify(varredura_handle, NOTIFY_PAUSE, eSetBits);
-                continue;
-            }
-            if (cmd.command[0] == 'F') {
-                xTaskNotify(varredura_handle, NOTIFY_RESUME, eSetBits);
-                //continue;
-            }
-        }
         enqueue_command(&cmd);
-        //process_command(&cmd, sock);
+        
     }
     // Cleanup
     close(sock);
@@ -191,7 +180,6 @@ void process_command(const udp_command_t *cmd, int sock) {
 
 //Função de parsing principal, direciona o fluxo lógico da operação desejada no comando e chama a função correspondente
 void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int sock) {
-    //printf("Debug Parsing, %s\n", command);
     // Verifica se o comando inicia com 'F' ou 'O'
     if (command[0] == 'F' || command[0] == 'O') {
         char *end;
@@ -199,15 +187,25 @@ void parse_and_execute(char *command, const struct sockaddr_in *source_addr, int
         //printf("Debug led_id: %u \n", led_id);
         if (*end == '\0' || *end == '\n' || *end == '\r') {
             int action = (command[0] == 'F') ? COMANDO_KEYLED_OFF : COMANDO_KEYLED_ON;
+            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE){
             ManageKeyLeds(action, led_id);
+            xSemaphoreGive(i2c_mutex);
+            }
         }
     // Ligar / Desligar todos os Leds da mesa
     } else if (command[0] == 'A') {
         if (command[1] == '0' || command[1] == '1') {
+            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
             inicializaStatusOfKeyBoardLeds();
-        } else {
-            ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
+            xSemaphoreGive(i2c_mutex);
         }
+    }
+         else {
+            if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            ManageKeyLeds(COMANDO_KEYLED_ON, ALL_LEDS);
+            xSemaphoreGive(i2c_mutex);
+        }
+    }
     // Handshake, retorna uma resposta e salva o cliente no escopo global
     } else if (command[0] == 'H' && command[1] == 'I') {
         if (((AuxVarToShowVersionOfHardwareBoard)&(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED)) ==
@@ -269,7 +267,6 @@ void process_commands(void *pvParameters) {
             cmd = command_buffer[tail];
             tail = (tail + 1) % 30;
             parse_and_execute(cmd.command, &cmd.source_addr, g_sock);
-            vTaskDelay(pdMS_TO_TICKS(20));
         }
         processor_awake = false; 
     }

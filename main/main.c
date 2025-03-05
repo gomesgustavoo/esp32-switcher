@@ -43,6 +43,7 @@ extern unsigned char StatusOfKeyBoardLeds[7+5+5+5][2];
 extern unsigned char StatusOfEncoderBoardLeds[2];
 
 TaskHandle_t varredura_handle = NULL;
+SemaphoreHandle_t i2c_mutex = NULL;
 
 void app_main(void)
 {
@@ -85,6 +86,13 @@ void app_main(void)
 	//ESP Rotina de inicialização dos PCAs alterada para o funcionamento especifico no esp
 	inicializaPCAs();
 	vTaskDelay(pdMS_TO_TICKS(60));
+
+	i2c_mutex = xSemaphoreCreateMutex();
+    if (i2c_mutex == NULL) {
+        printf("Erro ao criar mutex\n");
+        return;
+    }
+
 	
 	//Inicializa vertorzao de leitura de teclas
 	for (cntTmp = 0; cntTmp < 5; cntTmp++)
@@ -119,7 +127,7 @@ void app_main(void)
 	*/
 	
 	//Create a task de varredura das teclas com afinidade no CPU 0
-	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 13, &varredura_handle, 0);
+	xTaskCreatePinnedToCore(readkey_task, "Task de Varredura", 8192, NULL, configMAX_PRIORITIES - 3, &varredura_handle, 0);
 
 	// Create UDP server task on CPU1
     xTaskCreatePinnedToCore(udp_server_task, "UDP Server Task", 8192, NULL, configMAX_PRIORITIES - 1, NULL, 1);
@@ -144,11 +152,17 @@ void inicializaStatusOfKeyBoardLeds(void)
 //Task de varredura
 void readkey_task(void *pvParameters) {
 	printf("Task de Varredura started on CPU %d\n", xPortGetCoreID());
-	while (1) {
-		ThreadReadKey_SemInt();
-
-		vTaskDelay(pdMS_TO_TICKS(40));
-	}
+    while (1) {
+        // Tenta adquirir o mutex com timeout
+        if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            // Executa a leitura do teclado
+            ThreadReadKey_SemInt();
+            // Libera o mutex após o acesso
+            xSemaphoreGive(i2c_mutex);
+        }
+        // Cede o processador para outras tasks
+        vTaskDelay(pdMS_TO_TICKS(60));
+    }
 }
 
 // Inicia o servidor udp na porta 500

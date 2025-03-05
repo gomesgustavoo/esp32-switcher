@@ -25,9 +25,6 @@ Descricao:	Esqueletos das funções do projeto Teclado Mago 56 teclas com expans
 
 extern unsigned char AuxVarToShowVersionOfHardwareBoard;
 
-int send_udp_with_notification_check(int sock, const void *buffer, size_t len, int flags,
-                                       const struct sockaddr *dest_addr, socklen_t addrlen);
-
 //KeysManager.c
 void ThreadProcessaComandosUSB(void);
 void RunKeyLedsOneTime(void);
