@@ -154,14 +154,14 @@ void readkey_task(void *pvParameters) {
 	printf("Task de Varredura started on CPU %d\n", xPortGetCoreID());
     while (1) {
         // Tenta adquirir o mutex com timeout
-        if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+        if (xSemaphoreTake(i2c_mutex, pdMS_TO_TICKS(25)) == pdTRUE) {
             // Executa a leitura do teclado
             ThreadReadKey_SemInt();
             // Libera o mutex após o acesso
             xSemaphoreGive(i2c_mutex);
         }
         // Cede o processador para outras tasks
-        vTaskDelay(pdMS_TO_TICKS(60));
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 

@@ -745,7 +745,7 @@ void ThreadReadKey_SemInt(void)
 		(HARDWARE_VERSION_56TECLASSCOM1EXPANSAO_POS1DETECTED))
 	{ 
 		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_A);
-		vTaskDelay(pdMS_TO_TICKS(10));
+		vTaskDelay(pdMS_TO_TICKS(6));
 		ThreadReadKey_SemInt_Individualmente(ENDERECO_PCA_3_MM1200_B);
 	}
 }
@@ -925,7 +925,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 			{
 				if (((bufferLeituraPCA1_imediatamenteAposPolling[cntBank])& varBitSelect) == 0x00)
 				{
-					//bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
+					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
 
 					char response[4]; // Buffer fixo para a resposta
 					unsigned int tecla_id = ArrayIndicaTecla[cntBank][cntTmp];
@@ -939,7 +939,7 @@ void ThreadReadKey_SemInt_Individualmente (unsigned char i2CAddress)
 					sendto(g_sock, response, 4, 0, (struct sockaddr *)&g_client_addr, sizeof(g_client_addr));
 					//printf("Debug Varredura: %s\n", response);
 					// Atualiza o buffer
-					bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
+					//bufferLeituraPCA1_seminterrupcao[cntBank] &= ~varBitSelect;
 				}
 				else 
 				{
